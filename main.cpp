@@ -2,15 +2,16 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <iomanip>
+
 
 #include "cpu.h"
 #include "mem.h"
 
+Cpu cpu;
+Mem mem;
 
 int main(int argc, char* argv[]) {
-
-  Cpu cpu;
-  Mem mem;
 
   if (argc !=2){
     std::cout << "Usage : Herve program.bin" << std::endl;;
@@ -45,9 +46,10 @@ int main(int argc, char* argv[]) {
   file.read((char*)mem.ram, size);
   file.close();
 
-  for (int i=0; i<((int)size/4); i++){
-    std::cout << std::hex << mem.ram[i] << "\n";
-  }
+  // dump of the file
+  // for (uint32_t address=0; address<(uint32_t)size; address+=4){
+  //   std::cout << std::hex << std::setfill('0') << std::setw(8) << mem.getInt32(address) << std::endl;
+  // }
 
 
   while (cpu.exec(1));

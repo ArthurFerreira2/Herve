@@ -3,15 +3,19 @@
 
 #include <cstdint>
 
+#define RAMSIZE 0x10000
+
 class Mem {
   public:
-    uint32_t ram[0x10000] = {0};  // 64K of RAM - who needs more ?
-    uint32_t rom[0x100] = {0};    // 256 bytes of ROM ... for a future monitor
+    int8_t ram[RAMSIZE] = {0};   // 64K of RAM - who needs more ?
 
-    Mem() {reset();};
-    ~Mem() {};
+    Mem() {
+      reset();
+    }
+    ~Mem() {}
 
     void reset();
+    int32_t getInt32(uint32_t address);
 };
 
 #endif
