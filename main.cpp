@@ -46,9 +46,9 @@ int main(int argc, char* argv[]) {
   file.close();
 
   for (int i=0; i<((int)size/4); i++){
-    std::cout << std::hex << mem.ram[i] << " ";
+    std::cout << std::hex << mem.ram[i] << "\n";
   }
-  std::cout << std::endl;
+
 
   while (cpu.exec(1));
 
