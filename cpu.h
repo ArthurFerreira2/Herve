@@ -8,7 +8,7 @@ class Cpu {
     uint32_t x[32] = {0};
     uint32_t pc = 0;
 
-    Cpu() {};
+    Cpu() {reset();};
     ~Cpu() {};
     void reset();
     int exec(int cycles);
