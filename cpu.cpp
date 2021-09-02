@@ -33,14 +33,15 @@ void Cpu::setReg(int reg, int32_t value) {
 }
 
 void Cpu::printRegs() {
+  std::cout << "PC -> 0x" << std::hex << std::setfill('0') << std::setw(8) << pc << std::endl;
+
   for (int i=0; i<32; i++) {
     std::cout << std::dec << "x" << std::setfill('0') << std::setw(2) << i << " : 0x" << std::setw(8) << std::hex << x[i];
     if ((i+1)%4)
-      std::cout << "   ";
+      std::cout << "\t";
     else
       std::cout << "\n";
   }
-  std::cout << "PC -> 0x" << std::hex << std::setfill('0') << std::setw(8) << pc << std::endl;
   return;
 }
 
@@ -48,7 +49,7 @@ int Cpu::exec(int cyclesCount){
 
   int32_t instruction = mem.getInt32(pc);
 
-  std::cout << "\nInstruction : 0x" << std::setfill('0') << std::setw(8) << instruction << std::endl;
+  std::cout << "\nInstruction : 0x" << std::setfill('0') << std::setw(8) << instruction << "\t";
   printRegs();
   static int cyclesToRun = 2;
   pc += 0x04;
