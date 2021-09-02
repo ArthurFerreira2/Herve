@@ -2,9 +2,9 @@ WIP
 
 I bought "the risc-v reader, an open architecture atlas" from D. Paterson and A. Waterman and decided to write an ISA simulator.
 
-The goal is to execute simple programs assembled with GAS (The GNU Assembler) and converted to binary files with objdump (no elf support).
+The goal is to execute simple programs assembled with GAS (The GNU Assembler) and converted to binary files with objcopy (no elf support).
 
-At this time I'm planning only : Flat memory (no MMU) with two memory mapped I/O : readkey and putchar using 8 bits extended ASCII. And restricted to the RV32I ISA subset :
+At this time I'm planning only : Flat memory (no MMU) with two memory mapped I/O : readkey and putchar using 8 bits extended ASCII. And restricted to this RV32I ISA subset :
 
 - Shifts : SRA, SRAI, SRL, SRLI, SLL, SLLI
 - Arithmetics : ADD, ADDI, SUB, LUI, AUIPC
