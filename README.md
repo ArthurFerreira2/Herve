@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 WIP
 
 I bought "the risc-v reader, an open architecture atlas" from D. Paterson and A. Waterman and decided to write an ISA simulator.
@@ -18,6 +17,3 @@ At this time I'm planning only : Flat memory (no MMU) with two memory mapped I/O
 - Control : HLT
 
 Stay tuned !
-=======
-WIP - stay tuned
->>>>>>> df709ca4e8750f113815900368f39e10ca4514ad
