@@ -1,5 +1,4 @@
-You need the risc-v gnu toolchain to assemble these exemples
-here is my workflow :
+You need the risc-v gnu toolchain to assemble these exemples - Here is my workflow :
 
 helloWorld.s
 ```
