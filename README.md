@@ -22,4 +22,17 @@ At this time I'm planning only :
   - Loads : LB, LBU, LH, LHU, LW
   - Stores : SB, SH, SW
 
+
+... so far :
+```
+
+kilo [ Herve ]$ make clean && make && ./herve RV32I-Examples/helloWorld.bin
+rm -f herve
+g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 herve.cpp cpu.cpp cpu.h mem.cpp mem.h -o herve -lstdc++fs
+Loaded 14 words from "helloWorld.bin" into memory
+Hello
+kilo [ Herve ]$
+```
+
+
 Stay tuned !

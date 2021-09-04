@@ -10,22 +10,22 @@ boot:
 
 	lui	t0, 0xFFFC 	# memory mapped io : putchar
 
-	addi	t1, x0, 72
+	addi	t1, x0, 0x48	# H
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 101
+	addi	t1, x0, 0x65	# e
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 108
+	addi	t1, x0, 0x6C	# l
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 108
+	addi	t1, x0, 0x6C	# l
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 111
+	addi	t1, x0, 0x6F	# o
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 10
+	addi	t1, x0, 0x0A	# Line Feed
 	sw	t1, 0(t0)
 
 finish:
@@ -66,7 +66,7 @@ Compare it with the original assembly :
 ```
 riscv32-unknown-elf-objdump -d helloWorld.elf
 
-helloWorld.elf:     file format elf32-littleriscv
+RV32I-Examples/helloWorld.elf:     file format elf32-littleriscv
 
 
 Disassembly of section .text:
@@ -88,4 +88,5 @@ Disassembly of section .text:
 
 00000034 <finish>:
   34:	00630063          	beq	t1,t1,34 <finish>
+
 ```

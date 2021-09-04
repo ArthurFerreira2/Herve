@@ -6,22 +6,22 @@ boot:
 
 	lui	t0, 0xFFFC 	# memory mapped io : putchar
 
-	addi	t1, x0, 72
+	addi	t1, x0, 0x48	# H
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 101
+	addi	t1, x0, 0x65	# e
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 108
+	addi	t1, x0, 0x6C	# l
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 108
+	addi	t1, x0, 0x6C	# l
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 111
+	addi	t1, x0, 0x6F	# o
 	sw	t1, 0(t0)
 
-	addi	t1, x0, 10
+	addi	t1, x0, 0x0A	# Line Feed
 	sw	t1, 0(t0)
 
 finish:

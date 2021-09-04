@@ -5,12 +5,18 @@
 
 class Cpu {
   public:
-    int32_t x[32] = {0};
-    uint32_t pc = 0;
+    int32_t X[32] = {0};
+    uint32_t PC = 0;
 
-    Cpu() {reset();};
+    uint32_t instructionCount = 0;
+
+    uint32_t IR = 0;  // instruction register
+    uint32_t opcode, func3, func7, imm;
+    int rd, rs1, rs2;
+
+    Cpu() {};
     ~Cpu() {};
-    void reset();
+
     int exec(int cyclesCount);
 
     void setPC(uint32_t address);
@@ -20,6 +26,7 @@ class Cpu {
     void setReg(int reg, int32_t value);
 
     void printRegs();
+    void printIR();
 };
 
 #endif
