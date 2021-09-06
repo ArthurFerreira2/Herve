@@ -3,8 +3,10 @@
 #include "cpu.h"
 #include "mem.h"
 
-extern Mem mem;
+#define TRACE
 
+
+extern Mem mem;
 
 uint32_t Cpu::getPC() {
   return PC;
@@ -38,34 +40,34 @@ void Cpu::printRegs() {
 }
 
 void Cpu::printIR() {
-  std::cout << "\nOP : "    << std::dec << std::setfill('0') << std::setw(3) << opcode;
-  std::cout << "\tRD : "    << std::dec << std::setfill('0') << std::setw(2) << rd;
-  std::cout << "\tRS1 : "   << std::dec << std::setfill('0') << std::setw(2) << rs1;
-  std::cout << "\tRS2 : "   << std::dec << std::setfill('0') << std::setw(2) << rs2;
-  std::cout << "\tF3 : " << std::dec << std::setfill('0') << std::setw(3) << func3;
-  std::cout << "\tF7 : " << std::dec << std::setfill('0') << std::setw(3) << func7 << std::endl;
+  std::cout << "\nOP : "  << std::dec << std::setfill('0') << std::setw(3) << opcode;
+  std::cout << "\tRD : "  << std::dec << std::setfill('0') << std::setw(2) << rd;
+  std::cout << "\tRS1 : " << std::dec << std::setfill('0') << std::setw(2) << rs1;
+  std::cout << "\tRS2 : " << std::dec << std::setfill('0') << std::setw(2) << rs2;
+  std::cout << "\tF3 : "  << std::dec << std::setfill('0') << std::setw(3) << func3;
+  std::cout << "\tF7 : "  << std::dec << std::setfill('0') << std::setw(3) << func7 << std::endl;
   return;
 }
 
 int Cpu::exec(int cyclesCount){
 
-
-
   // FETCH
   IR = mem.get32(PC);  // instruction register
-
-  // trace
-  // std::cout << "\nInstruction : 0x" << std::hex << std::setfill('0') << std::setw(8) << IR << "\t";
+#ifdef TRACE
+  std::cout << "\nInstruction : 0x" << std::hex << std::setfill('0') << std::setw(8) << IR << "\t";
+#endif
 
   // DECODE &  EXECUTE
 
   opcode = IR & 0b1111111;
 
+
   // R-TYPE
   if (opcode == 0b0110011) {
-    // std::cout << "R-TYPE";
+#ifdef TRACE
+    std::cout << "R-TYPE ";
+#endif
     func3 = (IR >> 12) & 0b111;
-    func7 = (IR >> 25) & 0b1111111;
     rd =    (IR >> 7)  & 0b11111;
     rs1 =   (IR >> 15) & 0b11111;
     rs2 =   (IR >> 20) & 0b11111;
@@ -74,6 +76,7 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):
+        func7 = (IR >> 25) & 0b1111111;
         if (func7 == 0b0000000) X[rd] = X[rs1] + X[rs2];                        // add
         if (func7 == 0b0100000) X[rd] = X[rs1] - X[rs2];                        // sub - substract
       break;
@@ -93,9 +96,12 @@ int Cpu::exec(int cyclesCount){
     }
   }                                                                             // end of r-type
 
+
   // I-TYPE
   if (opcode == 0b0010011) {
-    // std::cout << "I-TYPE";
+#ifdef TRACE
+    std::cout << "I-TYPE ";
+#endif
     func3 = (IR >> 12) & 0b111;
     imm =   (IR >> 20);
     rd =    (IR >> 7)  & 0b11111;
@@ -111,9 +117,11 @@ int Cpu::exec(int cyclesCount){
 
   // S-TYPE
   if (opcode == 0b0100011) {
-    // std::cout << "S-TYPE";
+#ifdef TRACE
+    std::cout << "S-TYPE ";
+#endif
     func3 = (IR >> 12) & 0b111;
-    imm =  ((IR >> 7)  & 0b11111) | ((IR >> 20) & 0b00000);
+    imm =  ((IR >> 7)  & 0b11111) | (((IR >> 25) & 0b1111111) << 7);  // Sign and Zero Extension ???
     rd =    (IR >> 7)  & 0b11111;
     rs1 =   (IR >> 15) & 0b11111;
     rs2 =   (IR >> 20) & 0b11111;
@@ -134,19 +142,21 @@ int Cpu::exec(int cyclesCount){
   }
 
 
-
   // U-TYPE
   if (opcode == 0b0110111) {                                                    // lui - Load Upper Immediate
-    // std::cout << "U-TYPE";
-    imm = (IR >> 12);
+#ifdef TRACE
+    std::cout << "U-TYPE ";
+#endif
+    imm = IR & 0b11111111111111111111000000000000;
     rd =  (IR >> 7) & 0b11111;
     X[rd] = imm;
   }
 
-  // trace
-  // printIR();
-  // printRegs();
+#ifdef TRACE
+  printIR();
+  printRegs();
+#endif
   PC += 0x04;
 
-  return ++instructionCount;
+  return ++instructionCycles;
 }

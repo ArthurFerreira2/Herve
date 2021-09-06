@@ -8,7 +8,7 @@ class Cpu {
     int32_t X[32] = {0};
     uint32_t PC = 0;
 
-    uint32_t instructionCount = 0;
+    uint32_t instructionCycles = 0;
 
     uint32_t IR = 0;  // instruction register
     uint32_t opcode, func3, func7, imm;

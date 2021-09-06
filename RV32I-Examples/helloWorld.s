@@ -4,7 +4,7 @@
 .type boot, @function
 boot:
 
-	lui	t0, 0xFFFC 	# memory mapped io : putchar
+	lui	t0, 0xE000 	# memory mapped io : putchar
 
 	addi	t1, x0, 0x48	# H
 	sw	t1, 0(t0)
