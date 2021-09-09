@@ -1,3 +1,8 @@
+// as Mark Twain could have said :
+// I apologize for writing such a complicated program.
+// I didn't have time to write a simple one.
+
+
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -45,12 +50,14 @@ int main(int argc, char* argv[]) {
   std::cout << "Loaded " << (size << 2) << " words from " << filepath.filename() << " into memory" << std::endl;
 
   // dump of the file
-  for (uint32_t address=0; address<(uint32_t)size; address+=4){
-    std::cerr << std::hex << std::setfill('0') << std::setw(8) << mem.get32(address) << std::endl;
-  }
+  // for (uint32_t address=0; address<(uint32_t)size; address+=4){
+  //   std::cerr << std::hex << std::setfill('0') << std::setw(8) << mem.get32(address) << std::endl;
+  // }
 
 
-  while (cpu.instructionCycles < 4) cpu.exec(1);
+  while (cpu.instructionCycles < 14 && cpu.state != HALTED) cpu.exec(1);
+
+	std::cout << "\nProgram terminated" << std::endl;
 
   exit(EXIT_SUCCESS);
 }

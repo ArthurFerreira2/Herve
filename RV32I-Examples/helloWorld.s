@@ -1,8 +1,8 @@
 .section .text
 
-.global boot
-.type boot, @function
-boot:
+.global start
+.type start, @function
+start:
 
 	lui	t0, 0xE000 	# memory mapped io : putchar
 
