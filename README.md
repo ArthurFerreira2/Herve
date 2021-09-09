@@ -84,7 +84,9 @@ All RV32I instructions were implemented but Itested only a few of them.
 
 ## compile and run
 
-sor far :
+please refer to README.md under the **RV32I-Examples** folder for information on how to compile / assemble and convert your sources into an appropriate binary file - a Makefile is also provided.
+
+
 
 ```shell
 
