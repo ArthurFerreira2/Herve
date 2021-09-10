@@ -99,7 +99,7 @@ Hello
 Program terminated
 ```
 
-The traces of the execution were redirected into the **trace** file :
+The traces of the execution were redirected into the **traces** file :
 
 ```
 $ cat traces
