@@ -93,7 +93,7 @@ please refer to README.md under the **RV32I-Examples** folder for information on
 $ make clean && make && ./herve RV32I-Examples/helloWorld.bin 2>traces
 rm -f herve
 g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 herve.cpp cpu.cpp mem.cpp -o herve -lstdc++fs
-Loaded 224 words from "helloWorld.bin" into memory
+Loaded 14 words from "helloWorld.bin" into memory
 Hello
 
 Program terminated

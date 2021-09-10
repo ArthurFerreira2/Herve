@@ -148,6 +148,7 @@ int Cpu::exec(int cyclesCount){
 
     default:
       std::cerr << "Illegal I-type instruction" << std::endl;
+      state = HALTED;
     }
   }
 
@@ -196,6 +197,7 @@ int Cpu::exec(int cyclesCount){
 
       default:
         std::cerr << "Illegal B-type instruction" << std::endl;
+        state = HALTED;
     }
   }
 
@@ -241,6 +243,7 @@ int Cpu::exec(int cyclesCount){
 
       default:
         std::cerr << "Illegal I-type instruction" << std::endl;
+        state = HALTED;
     }
   }
 
@@ -273,6 +276,7 @@ int Cpu::exec(int cyclesCount){
 
       default:
         std::cerr << "Illegal S-type instruction" << std::endl;
+        state = HALTED;
     }
   }
 
@@ -332,6 +336,7 @@ int Cpu::exec(int cyclesCount){
 
       default:
         std::cerr << "Illegal I-type instruction" << std::endl;
+        state = HALTED;
     }
   }
 
@@ -392,6 +397,7 @@ int Cpu::exec(int cyclesCount){
 
       default:
         std::cerr << "Illegal R-type instruction" << std::endl;
+        state = HALTED;
     }
   }
 
@@ -416,17 +422,19 @@ int Cpu::exec(int cyclesCount){
         if ((IR >> 20) == 0) {                                                  // ECALL - Environment Call
           std::cerr << "Illegal System Call" << std::endl;
           state = HALTED;
-				}
+        }
       break;
 
       default:
-        std::cerr << "Illegal R-type instruction" << std::endl;
+        std::cerr << "Illegal E-type instruction" << std::endl;
+        state = HALTED;
     }
   }
 
 
   else {
     std::cerr << "Illegal instruction" << std::endl;
+    state = HALTED;
   }
 
   #ifdef TRACE
