@@ -12,7 +12,7 @@ The goal is to execute simple programs assembled with GAS (The GNU Assembler) an
 At this time I'm planning only :
 - Flat memory (no MMU)
 - Two memory mapped I/O : getChar and putChar until I implement ecall
-- Restricted to this RV32I ISA (no fence)
+- Restricted to the RV32I ISA (with fence implemented as NOP)
 
 ## loader
 
