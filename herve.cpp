@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
   file.read((char*)mem.ram8, size);
   file.close();
-  std::cout << "Loaded " << (size << 2) << " words from " << filepath.filename() << " into memory" << std::endl;
+  std::cout << "Loaded " << (size >> 2) << " words from " << filepath.filename() << " into memory" << std::endl;
 
   // dump of the file
   // for (uint32_t address=0; address<(uint32_t)size; address+=4){

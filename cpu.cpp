@@ -413,12 +413,13 @@ int Cpu::exec(int cyclesCount){
       case (0b000):
         if ((IR >> 20) == 1)                                                    // EBREAK - Environment Break
           state = HALTED;
-        if ((IR >> 20) == 0)                                                    // ECALL - Environment Call
+        if ((IR >> 20) == 0) {                                                  // ECALL - Environment Call
           std::cerr << "Illegal System Call" << std::endl;
           state = HALTED;
+				}
       break;
 
-    default:
+      default:
         std::cerr << "Illegal R-type instruction" << std::endl;
     }
   }
