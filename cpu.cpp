@@ -3,8 +3,6 @@
 #include "cpu.h"
 #include "mem.h"
 
-#define TRACE
-
 
 extern Mem mem;
 
@@ -60,10 +58,8 @@ int Cpu::exec(int cyclesCount){
   IR = mem.get32(PC);  // instruction register
 
 
-  #ifdef TRACE
   std::cerr << "\nPC  : " << std::hex << std::setfill('0') << std::setw(8) << PC;
   std::cerr << "\tInstruction : " << std::hex << std::setfill('0') << std::setw(8) << IR << "\t";
-  #endif
 
 
   // Increment Program Counter
@@ -80,9 +76,7 @@ int Cpu::exec(int cyclesCount){
 
   if (opcode == 0b0110111) {                                                    // LUI - Load Upper Immediate
 
-    #ifdef TRACE
     std::cerr << "U-TYPE LUI";
-    #endif
 
     rd =  (IR >> 7) & 0b11111;
     imm = IR & 0xFFFFF000;
@@ -93,9 +87,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b0010111) {                                               // AUIPC - Add Upper Immediate to PC
 
-    #ifdef TRACE
     std::cerr << "U-TYPE AUIPC";
-    #endif
 
     rd =  (IR >> 7) & 0b11111;
     imm = IR & 0xFFFFF000;
@@ -109,9 +101,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b1101111) {                                               // JAL - Jump And Link
 
-    #ifdef TRACE
     std::cerr << "J-TYPE JAL ";
-    #endif
 
     rd =  (IR >> 7) & 0b11111;
     imm = (IR & 0x000FF000UL) | ((IR & 0x7FE00000) >> 20);
@@ -131,9 +121,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b1100111) {                                               // JALR - Jump And Link Register
 
-    #ifdef TRACE
     std::cerr << "I-TYPE JALR";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rd = (IR >> 7) & 0b11111;
@@ -157,19 +145,18 @@ int Cpu::exec(int cyclesCount){
   // B-TYPE (branches)
 
   else if (opcode == 0b1100011) {
-    #ifdef TRACE
+
     std::cerr << "B-TYPE ";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rs1 = (IR >> 15) & 0b11111;
     rs2 = (IR >> 20) & 0b11111;
 
-    imm = (IR >> 21) | ((IR >> 7) & 0b11110);  // sign extended - bit0 = 0
-    if (IR & 0x80)        // if the 7th bit of IR is set
-      imm |= 0x00000800UL;  // we set the 11th bit of imm
+    imm = (IR >> 20) | ((IR >> 7) & 0b11110);  // sign extended - bit0 = 0
+    if (IR & 0x80)         // if the 7th bit of IR is set
+      imm |= 0x00000800L;  // we set the 11th bit of imm
     else
-      imm &= 0xFFFFF7FF;  // otherwise we unset the 11th bit of imm
+      imm &= 0xFFFFF7FF;   // otherwise we unset the 11th bit of imm
 
     switch (func3) {
       case (0b000):                                                             // BEQ - Branch Equal
@@ -208,9 +195,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b0000011) {
 
-    #ifdef TRACE
     std::cerr << "I-TYPE LOADS";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rd = (IR >> 7) & 0b11111;
@@ -253,9 +238,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b0100011) {
 
-    #ifdef TRACE
     std::cerr << "S-TYPE ";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rs1 =   (IR >> 15) & 0b11111;
@@ -287,9 +270,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b0010011) {
 
-    #ifdef TRACE
     std::cerr << "I-TYPE ALU";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rd = (IR >> 7) & 0b11111;
@@ -331,11 +312,10 @@ int Cpu::exec(int cyclesCount){
         if (IR & 40000000) {  // if 30th bit of IR is set                       // SRAI - Shift Right Arithmetical Immediate
           if (rd != 0) X[rd] = X[rs1] >> shamt;
         }
-        else {                                                                    // SRLI - Shift Right Logical Immediate
+        else {                                                                  // SRLI - Shift Right Logical Immediate
           if (rd != 0) X[rd] = (uint32_t)X[rs1] >> shamt;
         }
       break;
-
 
       default:
         std::cerr << "Illegal I-type instruction" << std::endl;
@@ -350,9 +330,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b0110011) {
 
-    #ifdef TRACE
     std::cerr << "R-TYPE ";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rd =    (IR >> 7)  & 0b11111;
@@ -413,9 +391,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b0001111) {
 
-    #ifdef TRACE
     std::cerr << "FENCE";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rd =    (IR >> 7)  & 0b11111;
@@ -437,9 +413,7 @@ int Cpu::exec(int cyclesCount){
 
   else if (opcode == 0b1110011) {
 
-    #ifdef TRACE
     std::cerr << "E-TYPE";
-    #endif
 
     func3 = (IR >> 12) & 0b111;
     rd =    (IR >> 7)  & 0b11111;
@@ -468,10 +442,8 @@ int Cpu::exec(int cyclesCount){
     state = HALTED;
   }
 
-  #ifdef TRACE
   printIR();
   printRegs();
-  #endif
 
   return ++instructionCycles;
 }

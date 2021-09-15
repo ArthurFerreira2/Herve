@@ -9,13 +9,13 @@ Contents of section .text:
  10094 67800000 2380e600 93871700 6ff0dffc  g...#.......o...
 Contents of section .rodata:
  100a4 48656c6c 6f206672 6f6d2048 657276c3  Hello from Herv.
- 100b4 a920210a 00                          . !..           
+ 100b4 a920210a 00                          . !..
 Contents of section .comment:
  0000 4743433a 2028474e 55292031 312e312e  GCC: (GNU) 11.1.
- 0010 3000                                 0.              
+ 0010 3000                                 0.
 Contents of section .riscv.attributes:
  0000 411b0000 00726973 63760001 11000000  A....riscv......
- 0010 04100572 76333269 32703000           ...rv32i2p0.    
+ 0010 04100572 76333269 32703000           ...rv32i2p0.
 
 Disassembly of section .text:
 
@@ -25,10 +25,10 @@ Disassembly of section .text:
    1005c:	00008067          	ret
 
 00010060 <_start>:
-   10060:	000107b7          	lui	a5,0x10
-   10064:	0a478793          	addi	a5,a5,164 # 100a4 <_start+0x44>
-   10068:	0e0006b7          	lui	a3,0xe000
-   1006c:	0007c703          	lbu	a4,0(a5)
+OK   10060:	000107b7          	lui	a5,0x10
+OK   10064:	0a478793          	addi	a5,a5,164 # 100a4 <_start+0x44>
+OK   10068:	0e0006b7          	lui	a3,0xe000
+OK   1006c:	0007c703          	lbu	a4,0(a5)
    10070:	02071463          	bnez	a4,10098 <_start+0x38>
    10074:	0e0007b7          	lui	a5,0xe000
    10078:	00a00713          	li	a4,10

@@ -27,3 +27,6 @@ typedef struct {
   uint32_t  flags;                 // flags : read, write and executable
   uint32_t  align;                 // alignment
 } Elf32ProgramHeader;
+
+
+int loadElf(char* filename);
