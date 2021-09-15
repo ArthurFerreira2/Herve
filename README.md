@@ -3,7 +3,7 @@
 # Hervé, the RV simulator
 a tiny RISC-V RV32I ISA Simulator in C++ under the MIT Licence
 
-## WIP
+## WIP -- I have to update this readme : We now extract loads froms ELF files and can execute C code !
 
 I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator ... **Welcome to the twisted world of computer scientists**
 
