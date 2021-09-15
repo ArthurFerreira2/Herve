@@ -1,6 +1,6 @@
 CXX = g++
 FLAGS = -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3
-LIBS = -lstdc++fs
+LIBS = -lstdc++fs -lelf
 
 herve: herve.cpp cpu.cpp mem.cpp
 	$(CXX) $(FLAGS) $^ -o $@ $(LIBS)

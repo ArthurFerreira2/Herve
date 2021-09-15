@@ -14,7 +14,7 @@ uint32_t Cpu::getPC() {
 
 
 void Cpu::setPC(uint32_t address) {
-  if (address < RAMSIZE) PC = address;
+  if (address < (mem.getRamStartAddress() + RAMSIZE)) PC = address;
 }
 
 
@@ -32,9 +32,9 @@ void Cpu::setReg(int reg, int32_t value) {
 void Cpu::printRegs() {
 
   for (int i=0; i<32; i++) {
-    std::cerr << std::dec << "x" << std::setfill('0') << std::setw(2) << i << " : " << std::setw(8) << std::hex << X[i];
+    std::cerr << std::dec << "x" << std::setfill('0') << std::setw(2) << i << " : " << std::setfill(' ') << std::setw(8) << std::hex << X[i];
     if ((i+1)%4)
-      std::cerr << "\t";
+      std::cerr << "\t\t";
     else
       std::cerr << "\n";
   }
@@ -43,12 +43,13 @@ void Cpu::printRegs() {
 
 
 void Cpu::printIR() {
-  std::cerr << "\nOP : "  << std::dec << std::setfill('0') << std::setw(3) << opcode;
-  std::cerr << "   F3 : "  << std::dec << std::setfill('0') << std::setw(3) << func3;
-  std::cerr << "   F7 : "  << std::dec << std::setfill('0') << std::setw(3) << func7;
-  std::cerr << "   RS1 : " << std::dec << std::setfill('0') << std::setw(2) << rs1;
-  std::cerr << "   RS2 : " << std::dec << std::setfill('0') << std::setw(2) << rs2;
-  std::cerr << "   RD : "  << std::dec << std::setfill('0') << std::setw(2) << rd << std::endl;
+  std::cerr << "\nOP : "  << std::dec << std::setfill(' ') << std::setw(3) << opcode;
+  std::cerr << "   F3 : "  << std::dec << std::setfill(' ') << std::setw(3) << func3;
+  std::cerr << "   F7 : "  << std::dec << std::setfill(' ') << std::setw(3) << func7;
+  std::cerr << "   RS1 : " << std::dec << std::setfill(' ') << std::setw(2) << rs1;
+  std::cerr << "   RS2 : " << std::dec << std::setfill(' ') << std::setw(2) << rs2;
+  std::cerr << "   RD : "  << std::dec << std::setfill(' ') << std::setw(2) << rd;
+  std::cerr << "   IMM : "  << std::dec << std::setfill(' ') << std::setw(8) << imm << std::endl;
   return;
 }
 
@@ -69,7 +70,6 @@ int Cpu::exec(int cyclesCount){
   PC += 4;  // might be useless - in some case this has to be undo ... keeping for better readability
 
 
-
   // the opcode is not always sufficient to decode the instruction - func3 and sometimes func7 are also necessary
   // but it already gives us the format of the instruction which allows further decoding
   opcode = IR & 0b1111111;
@@ -87,7 +87,7 @@ int Cpu::exec(int cyclesCount){
     rd =  (IR >> 7) & 0b11111;
     imm = IR & 0xFFFFF000;
 
-    X[rd] = imm;
+    if (rd != 0) X[rd] = imm;
   }
 
 
@@ -100,7 +100,7 @@ int Cpu::exec(int cyclesCount){
     rd =  (IR >> 7) & 0b11111;
     imm = IR & 0xFFFFF000;
 
-    X[rd] = PC - 4 + imm;
+    if (rd != 0) X[rd] = PC - 4 + imm;
   }
 
 
@@ -114,17 +114,17 @@ int Cpu::exec(int cyclesCount){
     #endif
 
     rd =  (IR >> 7) & 0b11111;
-    imm = (IR & 0x000FF000) | ((IR & 0x7FE00000) >> 20);
+    imm = (IR & 0x000FF000UL) | ((IR & 0x7FE00000) >> 20);
 
     if ((int32_t)IR < 0)    // sign extention  if IR < 0 imm = -imm;
       imm |= 0xFFF00000;    // negative
 
     if (IR & 0x100000)      // if the 20th bit of IR is set
-      imm |= 0x00000800;    // we set the 11th bit of imm
+      imm |= 0x00000800UL;    // we set the 11th bit of imm
     else
       imm &= 0xFFFFF7FF;    // otherwise we unset the 11th bit of imm
 
-    X[rd] =  PC;            // return address
+    if (rd != 0) X[rd] =  PC;  // return address
     PC = (PC - 4 + imm);    // jump relative to PC
   }
 
@@ -142,7 +142,7 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {                                                            // Only one case in RV32I
       case (0b000):
-        X[rd] = PC;
+        if (rd != 0) X[rd] = PC;
         PC = (X[rs1] + imm) & 0xFFFFFFFE; // be sure we won't get into any odd address
       break;
 
@@ -164,9 +164,10 @@ int Cpu::exec(int cyclesCount){
     func3 = (IR >> 12) & 0b111;
     rs1 = (IR >> 15) & 0b11111;
     rs2 = (IR >> 20) & 0b11111;
-    imm = (IR >> 21) | ((IR >> 8) & 0b11110);  // sign extended - bit0 = 0
+
+    imm = (IR >> 21) | ((IR >> 7) & 0b11110);  // sign extended - bit0 = 0
     if (IR & 0x80)        // if the 7th bit of IR is set
-      imm |= 0x00000800;  // we set the 11th bit of imm
+      imm |= 0x00000800UL;  // we set the 11th bit of imm
     else
       imm &= 0xFFFFF7FF;  // otherwise we unset the 11th bit of imm
 
@@ -218,27 +219,27 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):                                                             // LB - Load Byte
-        X[rd] = mem.get8(X[rs1] + imm);
+        if (rd != 0) X[rd] = mem.get8(X[rs1] + imm);
         if (X[rd] & 0x80) // is negative
           X[rd] |= 0xFFFFFF00;  // sign extention
       break;
 
       case (0b001):                                                             // LH - Load Half word
-        X[rd] = mem.get16(X[rs1] + imm);
+        if (rd != 0) X[rd] = mem.get16(X[rs1] + imm);
         if (X[rd] & 0x8000) // is negative
           X[rd] |= 0xFFFF0000;  // sign extention
       break;
 
       case (0b010):                                                             // LW - Load Word
-        X[rd] = mem.get32(X[rs1] + imm);
+        if (rd != 0) X[rd] = mem.get32(X[rs1] + imm);
       break;
 
       case (0b100):                                                             // LBU - Load Byte Unsigned
-        X[rd] = mem.get8(X[rs1] + imm);
+        if (rd != 0) X[rd] = mem.get8(X[rs1] + imm);
       break;
 
       case (0b101):                                                             // LHU - Load Half word Unsigned
-        X[rd] = mem.get16(X[rs1] + imm);
+        if (rd != 0) X[rd] = mem.get16(X[rs1] + imm);
       break;
 
       default:
@@ -259,7 +260,7 @@ int Cpu::exec(int cyclesCount){
     func3 = (IR >> 12) & 0b111;
     rs1 =   (IR >> 15) & 0b11111;
     rs2 =   (IR >> 20) & 0b11111;
-    imm =  ((IR >> 25)  & 0xFFFFFFE0) | ((IR >> 7) & 0x0000001F);
+    imm =  ((IR >> 25)  & 0xFFFFFFE0) | ((IR >> 7) & 0x0000001FUL);
 
     switch (func3) {
       case (0b000):                                                             // SB - Store Byte
@@ -297,40 +298,42 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):                                                             // ADDI - ADD Immediate
-        X[rd] = X[rs1] + imm;
+        if (rd != 0) X[rd] = X[rs1] + imm;
       break;
 
       case (0b010):                                                             // SLTI - Set Less Than Immediate
-        X[rd] = (X[rs1] < imm) ? 1 : 0;
+        if (rd != 0) X[rd] = (X[rs1] < imm) ? 1 : 0;
       break;
 
       case (0b011):                                                             // SLTIU - Set Less Than Immediate Unsigned
-        X[rd] = (uint32_t)X[rs1] < (uint32_t)imm ? 1 : 0;
+        if (rd != 0) X[rd] = (uint32_t)X[rs1] < (uint32_t)imm ? 1 : 0;
       break;
 
       case (0b100):                                                             // XORI - XOR Immediate
-        X[rd] = X[rs1] ^ imm;
+        if (rd != 0) X[rd] = X[rs1] ^ imm;
       break;
 
       case (0b110):                                                             // ORI - OR Immediate
-        X[rd] = X[rs1] | imm;
+        if (rd != 0) X[rd] = X[rs1] | imm;
       break;
 
       case (0b111):                                                             // ANDI - AND Immediate
-        X[rd] = X[rs1] & imm;
+        if (rd != 0) X[rd] = X[rs1] & imm;
       break;
 
       case (0b001):                                                             // SLLI - Shift Left Logical Immediate
         shamt = (IR >> 20) & 0b11111;
-        X[rd] = X[rs1] << shamt;
+        if (rd != 0) X[rd] = X[rs1] << shamt;
       break;
 
       case (0b101):
         shamt = (IR >> 20) & 0b11111;
-        if (IR & 40000000)  // if 30th bit of IR is set                         // SRAI - Shift Right Arithmetical Immediate
-          X[rd] = X[rs1] >> shamt;
-        else                                                                    // SRLI - Shift Right Logical Immediate
-          X[rd] = (uint32_t)X[rs1] >> shamt;
+        if (IR & 40000000) {  // if 30th bit of IR is set                       // SRAI - Shift Right Arithmetical Immediate
+          if (rd != 0) X[rd] = X[rs1] >> shamt;
+        }
+        else {                                                                    // SRLI - Shift Right Logical Immediate
+          if (rd != 0) X[rd] = (uint32_t)X[rs1] >> shamt;
+        }
       break;
 
 
@@ -358,41 +361,45 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):
-        if (IR & 40000000)  // if 30th bit of IR is set
-          X[rd] = X[rs1] - X[rs2];                                              // SUB - substract
-        else
-          X[rd] = X[rs1] + X[rs2];                                              // ADD
+        if (IR & 40000000) { // if 30th bit of IR is set
+          if (rd != 0) X[rd] = X[rs1] - X[rs2];                                 // SUB - substract
+        }
+        else {
+          if (rd != 0) X[rd] = X[rs1] + X[rs2];                                 // ADD
+        }
       break;
 
       case (0b001):                                                             // SLL - Shift Left Logical
-        X[rd] = X[rs1] << (X[rs2]%32);
+        if (rd != 0) X[rd] = X[rs1] << (X[rs2]%32);
       break;
 
       case (0b010):                                                             // SLT - Set Less Than
-        X[rd] = (X[rs1] < X[rs2]) ? 1 : 0;
+        if (rd != 0) X[rd] = (X[rs1] < X[rs2]) ? 1 : 0;
       break;
 
       case (0b011):                                                             // SLTU - Set Less Than Unsigned
-        X[rd] = (uint32_t)X[rs1] < (uint32_t)X[rs2] ? 1 : 0;
+        if (rd != 0) X[rd] = (uint32_t)X[rs1] < (uint32_t)X[rs2] ? 1 : 0;
       break;
 
       case (0b100):                                                             // XOR
-        X[rd] = X[rs1] ^ X[rs2];
+        if (rd != 0) X[rd] = X[rs1] ^ X[rs2];
       break;
 
       case (0b101):
-        if (IR & 40000000)  // if 30th bit of IR is set
-          X[rd] = X[rs1] >> (X[rs2]%32);                                        // SRA - Shift Right Arithmetical
-        else
-          X[rd] = (uint32_t)X[rs1] >> (X[rs2]%32);                              // SRL - Shift Right Logical
+        if (IR & 40000000) { // if 30th bit of IR is set
+          if (rd != 0) X[rd] = X[rs1] >> (X[rs2]%32);                            // SRA - Shift Right Arithmetical
+        }
+        else {
+          if (rd != 0) X[rd] = (uint32_t)X[rs1] >> (X[rs2]%32);                  // SRL - Shift Right Logical
+        }
       break;
 
       case (0b110):                                                             // OR
-        X[rd] = X[rs1] | X[rs2];
+        if (rd != 0) X[rd] = X[rs1] | X[rs2];
       break;
 
       case (0b111):                                                             // AND
-        X[rd] = X[rs1] & X[rs2];
+        if (rd != 0) X[rd] = X[rs1] & X[rs2];
       break;
 
       default:
@@ -401,6 +408,29 @@ int Cpu::exec(int cyclesCount){
     }
   }
 
+
+  // FENCE
+
+  else if (opcode == 0b0001111) {
+
+    #ifdef TRACE
+    std::cerr << "FENCE";
+    #endif
+
+    func3 = (IR >> 12) & 0b111;
+    rd =    (IR >> 7)  & 0b11111;
+    rs1 =   (IR >> 15) & 0b11111;
+
+    switch (func3) {
+      case (0b000):
+         // no operation
+      break;
+
+      default:
+        std::cerr << "Illegal Fence instruction" << std::endl;
+        state = HALTED;
+    }
+  }
 
 
   // E-TYPE (Enviroment)
@@ -414,12 +444,13 @@ int Cpu::exec(int cyclesCount){
     func3 = (IR >> 12) & 0b111;
     rd =    (IR >> 7)  & 0b11111;
     rs1 =   (IR >> 15) & 0b11111;
+    func12 = (IR >> 20) & 0xFFF;
 
     switch (func3) {
       case (0b000):
-        if ((IR >> 20) == 1)                                                    // EBREAK - Environment Break
+        if (func12 == 1)                                                        // EBREAK - Environment Break
           state = HALTED;
-        if ((IR >> 20) == 0) {                                                  // ECALL - Environment Call
+        if (func12 == 0) {                                                      // ECALL - Environment Call
           std::cerr << "Illegal System Call" << std::endl;
           state = HALTED;
         }

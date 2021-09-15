@@ -23,7 +23,7 @@ class Cpu {
     int32_t IR = 0;  // instruction register
     int32_t imm;
 
-    uint32_t opcode, func3, func7, shamt;
+    uint32_t opcode, func3, func7, func12, shamt;
     int rd, rs1, rs2;  // indices for X[]
 
     Cpu() {};

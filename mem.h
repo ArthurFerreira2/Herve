@@ -11,16 +11,19 @@
 
 class Mem {
   public:
+
     int8_t ram8[RAMSIZE] = {0};
     int16_t *ram16;
     int32_t *ram32;
 
-    Mem() {
-      // ram = new std::array<uint8_t, RAMSIZE>
-      ram16 = (int16_t*)*(&ram8);
-      ram32 = (int32_t*)*(&ram8);
-    }
-    ~Mem() {}
+    uint32_t ramStartAddress = {0};
+    uint32_t programByteSize = {0};  // USELESSSSSS
+
+    Mem();
+    ~Mem();
+
+    uint32_t getRamStartAddress();
+    void setRamStartAddress(uint32_t address);
 
     int8_t get8(uint32_t address);
     int16_t get16(uint32_t address);

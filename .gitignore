@@ -3,3 +3,9 @@ notes.md
 herve
 *.o
 shifts*
+tests
+readelf*
+emu-rv32i.c
+.vscode
+trace*
+elfcat*

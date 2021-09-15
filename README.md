@@ -5,7 +5,7 @@ a tiny RISC-V RV32I ISA Simulator in C++ under the MIT Licence
 
 ## WIP
 
-I bought "the risc-v reader, an open architecture atlas" from D. Paterson and A. Waterman and decided to write an ISA simulator ... **Welcome to the twisted world of computer scientists**
+I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator ... **Welcome to the twisted world of computer scientists**
 
 The goal is to execute simple programs assembled with GAS (The GNU Assembler) and converted to binary files with objcopy (no elf support for the moment).
 
@@ -32,7 +32,7 @@ this is a primitive solution until I implement ecall
 store a byte at 0x0e000000 and it will be output to stdout
 keypresses will be available at address 0x0f000000
 
-## progress
+## progress update
 
 All RV32I instructions were implemented but Itested only a few of them.
 
@@ -78,9 +78,17 @@ All RV32I instructions were implemented but Itested only a few of them.
 | AND         | Logic AND                           | yes         | no     |
 | EBREAK      | Environment Break                   | yes         | no     |
 | ECALL       | Environment Call                    | yes         | no     |
-| FENCE*      | Memory Ordering                     | no          | no     |
+| FENCE       | Memory Ordering                     | as NOP*     | no     |
 
-\* Any unimplemented instrution will halt the execution so I might have to implement FENCE as a NOP.
+\* Any unimplemented instrution will halt the execution so I had to implement FENCE as a NOP.  
+
+I'm having hard time testing all instructions and have to think about an automated solution.  
+I'm finally going to add ELF support and test using C programs compiled for RV32I.
+
+```shell
+ riscv32-unknown-elf-gcc -march=rv32i -mabi=ilp32 -Os -nostdlib test-additions.c -o test-additions.elf
+```
+
 
 ## compile and run
 
