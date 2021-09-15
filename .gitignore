@@ -1,11 +1,7 @@
 .gitignore
-notes.md
-herve
 *.o
-shifts*
+herve
 tests
-readelf*
-emu-rv32i.c
 .vscode
 trace*
-elfcat*
+scratch
