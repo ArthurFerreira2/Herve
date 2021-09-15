@@ -47,7 +47,7 @@ riscv32-unknown-elf-objdump -ds helloWorld.elf > helloWorld.s
 
 cat helloWorld.s
 
-```assembly
+```
 helloWorld.elf:     file format elf32-littleriscv
 
 Contents of section .text:
@@ -206,7 +206,7 @@ Hello from Hervé !
 42
 ```
 
-traces:
+Full traces:
 ```
 Number of segments : 1
 Loading segment #0 into memory
