@@ -7,8 +7,8 @@
 You need the risc-v gnu toolchain to compile these exemples - Here is my workflow :
 
 
-we use **_start** as program entry point and not **main**
-we don't use the stdlib
+We use **_start** as program entry point and not **main**  
+We don't use the stdlib
 
 helloWorld.c
 ```C

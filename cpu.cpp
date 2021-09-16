@@ -28,7 +28,6 @@ void Cpu::setReg(int reg, int32_t value) {
 
 
 void Cpu::printRegs() {
-
   for (int i=0; i<32; i++) {
     std::cerr << std::dec << "x" << std::setfill('0') << std::setw(2) << i << " : " << std::setfill(' ') << std::setw(8) << std::hex << X[i];
     if ((i+1)%4)
@@ -152,7 +151,7 @@ int Cpu::exec(int cyclesCount){
     rs1 = (IR >> 15) & 0b11111;
     rs2 = (IR >> 20) & 0b11111;
 
-    imm = (IR >> 20) | ((IR >> 7) & 0b11110);  // sign extended - bit0 = 0
+    imm = ((IR >> 20) & 0xFFFFFFE0) | ((IR >> 7) & 0b11110);  // sign extended and bit0 = 0
     if (IR & 0x80)         // if the 7th bit of IR is set
       imm |= 0x00000800L;  // we set the 11th bit of imm
     else

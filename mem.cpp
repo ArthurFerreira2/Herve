@@ -34,7 +34,7 @@ int8_t Mem::get8(uint32_t address) {
   if (address < RAMSIZE)
     return ram8[address];
   else {
-    std::cerr << "Illegal Memory Read" << std::endl;
+    std::cerr << "\n\nIllegal Memory Read\n\n";
     return 0;
   }
 }
@@ -44,7 +44,7 @@ int16_t Mem::get16(uint32_t address) {
   if (address < RAMSIZE)
     return ram16[address >> 1];
   else {
-    std::cerr << "Illegal Memory Read" << std::endl;
+    std::cerr << "\n\nIllegal Memory Read\n\n";
     return 0;
   }
 }
@@ -54,7 +54,7 @@ int32_t Mem::get32(uint32_t address) {
   if (address < RAMSIZE)
     return ram32[address >> 2];
   else {
-    std::cerr << "Illegal Memory Read" << std::endl;
+    std::cerr << "\n\nIllegal Memory Read\n\n";
     return 0;
   }
 }
@@ -68,7 +68,7 @@ void Mem::set8(uint32_t address, int8_t value) {
     if (address < RAMSIZE)
       ram8[address] = value;
     else
-      std::cerr << "Illegal Memory Write" << std::endl;
+      std::cerr << "\n\nIllegal Memory Write\n\n";
   }
 }
 
@@ -81,7 +81,7 @@ void Mem::set16(uint32_t address, int16_t value) {
     if (address < RAMSIZE)
       ram16[address >> 1] = value;
     else
-      std::cerr << "Illegal Memory Write" << std::endl;
+      std::cerr << "\n\nIllegal Memory Write\n\n";
   }
 }
 
@@ -94,6 +94,6 @@ void Mem::set32(uint32_t address, int32_t value) {
     if (address < RAMSIZE)
       ram32[address >> 2] = value;
     else
-      std::cerr << "Illegal Memory Write" << std::endl;
+      std::cerr << "\n\nIllegal Memory Write\n\n";
   }
 }

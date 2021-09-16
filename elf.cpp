@@ -17,50 +17,51 @@ int loadElf(char* filename) {
   FILE* ElfFile = fopen(filename, "rb");
   if (ElfFile == NULL) {
     std::cerr << "Can't open file " << filename << std::endl;
-    return 1;
+    return 3001;
   }
 
   // read the ELF header
   Elf32Header header;
   if (fread(&header, 1, sizeof(header), ElfFile) != sizeof(header)) {
     std::cerr << "Could not load the ELF header (file too small ?)\n";
-    return 2;
+    return 3002;
   }
 
   // check the magic #
   if (header.e_ident[0] != 0x7F || header.e_ident[1] != 'E'
    || header.e_ident[2] != 'L' || header.e_ident[3] != 'F') {
     std::cerr << "Not an ELF file\n";
-    return 3;
+    return 3003;
   }
 
   // check class
   if (header.e_ident[4] != 1) {
     std::cerr << "Not a 32 bits ELF file\n";
-    return 4;
+    return 3004;
   }
 
+  // check our elf header struct size matches the one in the elf file
   if (header.e_ehsize != sizeof(header)) {
     std::cerr << "ELF header sizes inconsistency\n";
-    return 5;
+    return 3005;
   }
 
   // check enfianness
   if (header.e_ident[5] != 1) {
     std::cerr << "Not a Little Endian encoded binary\n";
-    return 6;
+    return 3006;
   }
 
   // check type of binary
   if ((header.e_type == 0) || (header.e_type > 3)) {
     std::cerr << "Not an executable ELF file\n";
-    return 7;
+    return 3007;
   }
 
   // check architecture
   if (header.e_machine != 0xF3) {
     std::cerr << "Not a RISC-V ELF file\n";
-    return 8;
+    return 3008;
   }
 
   // read the program headers : we expect only one - but might be more
@@ -69,13 +70,13 @@ int loadElf(char* filename) {
   // check we have at least one .text segment (program)
   if (header.e_phoff == 0) {
     std::cerr << "No executable found in ELF file " << filename << std::endl;
-    return 9;
+    return 3009;
   }
 
   // check program header size against the elf file header
   if (header.e_phentsize != sizeof(pHeader)) {
     std::cerr << "Segment header sizes inconsistency\n";
-    return 10;
+    return 3010;
   }
 
   // now, we know there are "header.e_phnum" segments of "header.e_phentsize" bytes each
@@ -85,7 +86,7 @@ int loadElf(char* filename) {
     std::cerr << "Moving to the first entry in the segment table\n";
     if (fseek(ElfFile, (long)(header.e_phoff - header.e_ehsize), SEEK_CUR) != 0) {
       std::cerr << "Can't seek into segment table position\n";
-      return 11;
+      return 3011;
     }
   }
 
@@ -102,13 +103,13 @@ int loadElf(char* filename) {
 
     if (fread(&pHeader, 1, sizeof(pHeader), ElfFile) != sizeof(pHeader)) {
       std::cerr << "Error while reading Program Header # " << segmentNum << std::endl;
-      return 12;
+      return 3012;
     }
 
     // check segment type
     if (pHeader.type != 1){
       std::cerr << "This segment is not a valid load\n";
-      // return 13;
+      // return 3013;
       continue;  // move to next segment
     }
 
@@ -119,13 +120,13 @@ int loadElf(char* filename) {
       nextPHeaderPosition = ftell(ElfFile);
       if (nextPHeaderPosition < 0) {
         std::cerr << "Can't save cursor position in file " << filename << std::endl;
-        return 14;
+        return 3014;
       }
 
       // and move up to the segment itself
       if (fseek(ElfFile, pHeader.offset, SEEK_CUR) != 0) {
         std::cerr << "Can't seek into segment #" << segmentNum << std::endl;
-        return 15;
+        return 3015;
       }
     }
 
@@ -141,13 +142,13 @@ int loadElf(char* filename) {
     // check we have enough memory
     if (pHeader.memsz > RAMSIZE) {
       std::cerr << "Can't fit segment #" << segmentNum << " into memory\n";
-      return 16;
+      return 3016;
     }
 
     // read the segment into memory
     if (fread(mem.ram8, 1, pHeader.filesz, ElfFile) != pHeader.filesz) {
       std::cerr << "Can't load segment #" << segmentNum << "into RAM\n";
-      return 17;
+      return 3017;
     }
 
     // reset the un-initialized data into memory (arrays, etc...)
@@ -159,14 +160,14 @@ int loadElf(char* filename) {
     if (nextPHeaderPosition != 0) {
       if (fseek(ElfFile, nextPHeaderPosition, SEEK_SET) != 0) {
         std::cerr << "can't restore cursor position in file " << filename << std::endl;
-        return 18;
+        return 3018;
       }
     }
 
-    // This part need a full review
+    // This part needs a full review
 
 
-    // FIXME : take into account the 32bits alignment
+    // FIXME : take into account the 32bits alignments
     mem.programByteSize = pHeader.filesz;
 
     // FIXME : seems like the addresses are starting at beg. of elf file ???

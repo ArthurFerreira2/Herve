@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   // Check a program has been provided as 1st argument
   if (argc != 2){
     std::cerr << "Usage : herve program\n";
-    exit(EXIT_FAILURE);
+    exit(1001);
   }
 
   // Load program into memory
