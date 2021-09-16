@@ -29,24 +29,24 @@ void Cpu::setReg(int reg, int32_t value) {
 
 void Cpu::printRegs() {
   for (int i=0; i<32; i++) {
-    std::cerr << std::dec << "x" << std::setfill('0') << std::setw(2) << i << " : " << std::setfill(' ') << std::setw(8) << std::hex << X[i];
-    if ((i+1)%4)
-      std::cerr << "\t\t";
-    else
-      std::cerr << "\n";
+    std::cerr  << "|" << regNames[i] << " "<< std::setfill(' ') << std::setw(8) << std::hex << X[i];
+    if (!((i+1)%6))
+      std::cerr << " |\n";
   }
+  std::cerr << std::endl;
   return;
 }
 
 
 void Cpu::printIR() {
-  std::cerr << "\nOP : "  << std::dec << std::setfill(' ') << std::setw(3) << opcode;
-  std::cerr << "   F3 : "  << std::dec << std::setfill(' ') << std::setw(3) << func3;
-  std::cerr << "   F7 : "  << std::dec << std::setfill(' ') << std::setw(3) << func7;
-  std::cerr << "   RS1 : " << std::dec << std::setfill(' ') << std::setw(2) << rs1;
-  std::cerr << "   RS2 : " << std::dec << std::setfill(' ') << std::setw(2) << rs2;
-  std::cerr << "   RD : "  << std::dec << std::setfill(' ') << std::setw(2) << rd;
-  std::cerr << "   IMM : "  << std::dec << std::setfill(' ') << std::setw(8) << imm << std::endl;
+  std::cerr << std::hex;
+  std::cerr << "\nOP : "   <<  std::setfill(' ') << std::setw(3) << opcode;
+  std::cerr << "   F3 : "  << std::setfill(' ') << std::setw(1) << func3;
+  std::cerr << "   F7 : "  << std::setfill(' ') << std::setw(3) << func7;
+  std::cerr << "   RS1 : " << regNames[rs1];
+  std::cerr << "   RS2 : " << regNames[rs2];
+  std::cerr << "   RD : "  << regNames[rd];
+  std::cerr << "   IMM : " << std::setfill(' ') << std::setw(8) << imm << std::endl;
   return;
 }
 
@@ -126,15 +126,17 @@ int Cpu::exec(int cyclesCount){
     rd = (IR >> 7) & 0b11111;
     rs1 = (IR >> 15) & 0b11111;
     imm = IR >> 20;  // naturally sign extended
+    int32_t temp = PC;
 
     switch (func3) {                                                            // Only one case in RV32I
       case (0b000):
-        if (rd != 0) X[rd] = PC;
         PC = (X[rs1] + imm) & 0xFFFFFFFE; // be sure we won't get into any odd address
+        if (rd != 0)
+          X[rd] = temp;
       break;
 
     default:
-      std::cerr << "Illegal I-type instruction" << std::endl;
+      std::cerr << " Illegal I-type instruction" << std::endl;
       state = HALTED;
     }
   }
@@ -183,7 +185,7 @@ int Cpu::exec(int cyclesCount){
       break;
 
       default:
-        std::cerr << "Illegal B-type instruction" << std::endl;
+        std::cerr << " Illegal B-type instruction" << std::endl;
         state = HALTED;
     }
   }
@@ -219,15 +221,15 @@ int Cpu::exec(int cyclesCount){
       break;
 
       case (0b100):                                                             // LBU - Load Byte Unsigned
-        if (rd != 0) X[rd] = mem.get8(X[rs1] + imm);
+        if (rd != 0) X[rd] = (uint8_t)mem.get8(X[rs1] + imm);
       break;
 
       case (0b101):                                                             // LHU - Load Half word Unsigned
-        if (rd != 0) X[rd] = mem.get16(X[rs1] + imm);
+        if (rd != 0) X[rd] = (uint16_t)mem.get16(X[rs1] + imm);
       break;
 
       default:
-        std::cerr << "Illegal I-type instruction" << std::endl;
+        std::cerr << " Illegal I-type instruction" << std::endl;
         state = HALTED;
     }
   }
@@ -242,7 +244,7 @@ int Cpu::exec(int cyclesCount){
     func3 = (IR >> 12) & 0b111;
     rs1 =   (IR >> 15) & 0b11111;
     rs2 =   (IR >> 20) & 0b11111;
-    imm =  ((IR >> 25)  & 0xFFFFFFE0) | ((IR >> 7) & 0x0000001FUL);
+    imm =  ((IR >> 20)  & 0xFFFFFFE0) | ((IR >> 7) & 0x0000001FL);
 
     switch (func3) {
       case (0b000):                                                             // SB - Store Byte
@@ -258,7 +260,7 @@ int Cpu::exec(int cyclesCount){
       break;
 
       default:
-        std::cerr << "Illegal S-type instruction" << std::endl;
+        std::cerr << " Illegal S-type instruction" << std::endl;
         state = HALTED;
     }
   }
@@ -303,12 +305,13 @@ int Cpu::exec(int cyclesCount){
 
       case (0b001):                                                             // SLLI - Shift Left Logical Immediate
         shamt = (IR >> 20) & 0b11111;
+        // std::cerr << " SHAMT : " << shamt;
         if (rd != 0) X[rd] = X[rs1] << shamt;
       break;
 
       case (0b101):
         shamt = (IR >> 20) & 0b11111;
-        if (IR & 40000000) {  // if 30th bit of IR is set                       // SRAI - Shift Right Arithmetical Immediate
+        if (IR & 0x40000000) {  // if 30th bit of IR is set                       // SRAI - Shift Right Arithmetical Immediate
           if (rd != 0) X[rd] = X[rs1] >> shamt;
         }
         else {                                                                  // SRLI - Shift Right Logical Immediate
@@ -317,7 +320,7 @@ int Cpu::exec(int cyclesCount){
       break;
 
       default:
-        std::cerr << "Illegal I-type instruction" << std::endl;
+        std::cerr << " Illegal I-type instruction" << std::endl;
         state = HALTED;
     }
   }
@@ -338,7 +341,7 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):
-        if (IR & 40000000) { // if 30th bit of IR is set
+        if (IR & 0x40000000) { // if 30th bit of IR is set
           if (rd != 0) X[rd] = X[rs1] - X[rs2];                                 // SUB - substract
         }
         else {
@@ -363,7 +366,7 @@ int Cpu::exec(int cyclesCount){
       break;
 
       case (0b101):
-        if (IR & 40000000) { // if 30th bit of IR is set
+        if (IR & 0x40000000) { // if 30th bit of IR is set
           if (rd != 0) X[rd] = X[rs1] >> (X[rs2]%32);                            // SRA - Shift Right Arithmetical
         }
         else {
@@ -380,7 +383,7 @@ int Cpu::exec(int cyclesCount){
       break;
 
       default:
-        std::cerr << "Illegal R-type instruction" << std::endl;
+        std::cerr << " Illegal R-type instruction" << std::endl;
         state = HALTED;
     }
   }
@@ -402,7 +405,7 @@ int Cpu::exec(int cyclesCount){
       break;
 
       default:
-        std::cerr << "Illegal Fence instruction" << std::endl;
+        std::cerr << " Illegal Fence instruction" << std::endl;
         state = HALTED;
     }
   }
@@ -421,23 +424,34 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):
+
         if (func12 == 1)                                                        // EBREAK - Environment Break
           state = HALTED;
-        if (func12 == 0) {                                                      // ECALL - Environment Call
-          std::cerr << "Illegal System Call" << std::endl;
+
+        else if (func12 == 0) {                                                 // ECALL - Environment Call
+
+          if (X[17] == 93) {                                                    // convention for tests in the tests folder
+            if (X[10] == 0)
+              std::cout << "All tests passed\n";
+            else
+             std::cout << "test # " << X[14] << " failled\n";
+          }
+          else
+            std::cerr << " Illegal System Call" << std::endl;
+
           state = HALTED;
         }
       break;
 
       default:
-        std::cerr << "Illegal E-type instruction" << std::endl;
-        state = HALTED;
+        std::cerr << " Illegal E-type instruction" << std::endl;
+        // state = HALTED;
     }
   }
 
 
   else {
-    std::cerr << "Illegal instruction" << std::endl;
+    std::cerr << " Illegal instruction" << std::endl;
     state = HALTED;
   }
 

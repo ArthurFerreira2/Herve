@@ -1,5 +1,6 @@
 
 
+
 # Hervé, the RV simulator
 a tiny RISC-V RV32I ISA Simulator in C++ under the MIT Licence
 
@@ -34,73 +35,85 @@ keypresses will be available at address 0x0f000000
 
 ## progress update
 
-All RV32I instructions were implemented but Itested only a few of them.
+All RV32I instructions were implemented and fully tested.
 
-
-| Instruction | Description                         | implemented | Tested |
-|-------------|-------------------------------------|:-----------:|:------:|
-| LUI         | Load Upper Immediate                | yes         | yes    |
-| AUIPC       | Add Upper Immediate to PC           | yes         | no     |
-| JAL         | Jump And Link                       | yes         | no     |
-| JALR        | Jump And Link Register              | yes         | no     |
-| BEQ         | Branch Equal                        | yes         | yes    |
-| BNE         | Branch Not Equal                    | yes         | no     |
-| BLT         | Branch Less Than                    | yes         | no     |
-| BGE         | Branch Greater or Equal             | yes         | no     |
-| BLTU        | Branch Less Than Unsigned           | yes         | no     |
-| BGEU        | Branch Greater or Equal Unsigned    | yes         | no     |
-| LB          | Load Byte                           | yes         | no     |
-| LH          | Load Half word                      | yes         | no     |
-| LW          | Load Word                           | yes         | no     |
-| LBU         | Load Byte Unsigned                  | yes         | no     |
-| LHU         | Load Half word Unsigned             | yes         | no     |
-| SB          | Store Byte                          | yes         | no     |
-| SH          | Store Half Word                     | yes         | no     |
-| SW          | Store Word                          | yes         | yes    |
-| ADDI        | ADD Immediate                       | yes         | yes    |
-| SLTI        | Set Less Than Immediate             | yes         | no     |
-| SLTIU       | Set Less Than Immediate Unsigned    | yes         | no     |
-| XORI        | XOR Immediate                       | yes         | no     |
-| ORI         | OR Immediate                        | yes         | no     |
-| ANDI        | AND Immediate                       | yes         | no     |
-| SLLI        | Shift Left Logical Immediate        | yes         | no     |
-| SRAI        | Shift Right Arithmetical Immediate  | yes         | no     |
-| SRLI        | Shift Right Logical Immediate       | yes         | no     |
-| ADD         | Addition                            | yes         | no     |
-| SUB         | Substraction                        | yes         | no     |
-| SLL         | Shift Left Logical                  | yes         | no     |
-| SLT         | Set Less Than                       | yes         | no     |
-| SLTU        | Set Less Than Unsigned              | yes         | no     |
-| XOR         | Logic XOR                           | yes         | no     |
-| SRA         | Shift Right Arithmetical            | yes         | no     |
-| SRL         | Shift Right Logical                 | yes         | no     |
-| OR          | Logic OR                            | yes         | no     |
-| AND         | Logic AND                           | yes         | no     |
-| EBREAK      | Environment Break                   | yes         | no     |
-| ECALL       | Environment Call                    | yes         | no     |
-| FENCE       | Memory Ordering                     | as NOP*     | no     |
-
-\* Any unimplemented instrution will halt the execution so I had to implement FENCE as a NOP.  
-
-I'm having hard time testing all instructions and have to think about an automated solution.  
-I'm finally going to add ELF support and test using C programs compiled for RV32I.
+I use the test suite published at : https://github.com/riscv-software-src/riscv-tests and his short shell script to automate the testings
 
 ```shell
- riscv32-unknown-elf-gcc -march=rv32i -mabi=ilp32 -Os -nostdlib test-additions.c -o test-additions.elf
+#!/bin/sh
+
+for test in `ls tests/ | grep -v dump `
+do
+  echo -n "$test : "
+  ./herve ./tests/$test 2> tests/$test.traces
+done
+
+
 ```
+| Instruction | Description                         | Implemented | Tested |
+|-------------|-------------------------------------|:-----------:|:------:|
+| LUI         | Load Upper Immediate                | yes         | pass   |
+| AUIPC       | Add Upper Immediate to PC           | yes         | pass   |
+| JAL         | Jump And Link                       | yes         | pass   |
+| JALR        | Jump And Link Register              | yes         | pass   |
+| BEQ         | Branch Equal                        | yes         | pass   |
+| BNE         | Branch Not Equal                    | yes         | pass   |
+| BLT         | Branch Less Than                    | yes         | pass   |
+| BGE         | Branch Greater or Equal             | yes         | pass   |
+| BLTU        | Branch Less Than Unsigned           | yes         | pass   |
+| BGEU        | Branch Greater or Equal Unsigned    | yes         | pass   |
+| LB          | Load Byte                           | yes         | pass   |
+| LH          | Load Half word                      | yes         | pass   |
+| LW          | Load Word                           | yes         | pass   |
+| LBU         | Load Byte Unsigned                  | yes         | pass   |
+| LHU         | Load Half word Unsigned             | yes         | pass   |
+| SB          | Store Byte                          | yes         | pass   |
+| SH          | Store Half Word                     | yes         | pass   |
+| SW          | Store Word                          | yes         | pass   |
+| ADDI        | ADD Immediate                       | yes         | pass   |
+| SLTI        | Set Less Than Immediate             | yes         | pass   |
+| SLTIU       | Set Less Than Immediate Unsigned    | yes         | pass   |
+| XORI        | XOR Immediate                       | yes         | pass   |
+| ORI         | OR Immediate                        | yes         | pass   |
+| ANDI        | AND Immediate                       | yes         | pass   |
+| SLLI        | Shift Left Logical Immediate        | yes         | pass   |
+| SRAI        | Shift Right Arithmetical Immediate  | yes         | pass   |
+| SRLI        | Shift Right Logical Immediate       | yes         | pass   |
+| ADD         | Addition                            | yes         | pass   |
+| SUB         | Substraction                        | yes         | pass   |
+| SLL         | Shift Left Logical                  | yes         | pass   |
+| SLT         | Set Less Than                       | yes         | pass   |
+| SLTU        | Set Less Than Unsigned              | yes         | pass   |
+| XOR         | Logic XOR                           | yes         | pass   |
+| SRA         | Shift Right Arithmetical            | yes         | pass   |
+| SRL         | Shift Right Logical                 | yes         | pass   |
+| OR          | Logic OR                            | yes         | pass   |
+| AND         | Logic AND                           | yes         | pass   |
+| EBREAK      | Environment Break                   | kind of     | yeah   |
+| ECALL       | Environment Call                    | kind of     | yeah   |
+| FENCE       | Memory Ordering                     | as NOP*     | n/a    |
+
+\* Any unimplemented instrution will halt the execution so I had to implement FENCE as a NOP.  
 
 
 ## compile and run
 
-please refer to README.md under the **RV32I-Examples** folder for information on how to compile / assemble and convert your sources into an appropriate binary file - a Makefile is also provided.
+### compile
 
+```shell
+make
+```
+
+you now should have an executable named herve.
+
+### run
+
+Please refer to README.md under the **RV32I-Examples** folder for information on how to assemble and the README.md under C-tests for information on how to compile your sources into risc-v binaries - Makefiles are also provided.
 
 
 ```shell
 
-$ make clean && make && ./herve RV32I-Examples/helloWorld.bin 2>traces
-rm -f herve
-g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 herve.cpp cpu.cpp mem.cpp -o herve -lstdc++fs
+$ ./herve RV32I-Examples/helloWorld.bin 2>traces
 Loaded 14 words from "helloWorld.bin" into memory
 Hello
 

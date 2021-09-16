@@ -1,7 +1,6 @@
 .gitignore
 *.o
 herve
-tests
 .vscode
 trace*
 scratch

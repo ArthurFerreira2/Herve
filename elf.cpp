@@ -99,7 +99,6 @@ int loadElf(char* filename) {
 
     nextPHeaderPosition = 0;
 
-    std::cerr << "Loading segment #" << segmentNum << " into memory\n";
 
     if (fread(&pHeader, 1, sizeof(pHeader), ElfFile) != sizeof(pHeader)) {
       std::cerr << "Error while reading Program Header # " << segmentNum << std::endl;
@@ -115,7 +114,7 @@ int loadElf(char* filename) {
 
     // if the segment is not right after this program header
     if (pHeader.offset != 0) {
-
+      // std::cerr << "Seg: " << segmentNum << "  moving cursor to " << pHeader.offset << std::endl;
       // save the file position, for the next segment header
       nextPHeaderPosition = ftell(ElfFile);
       if (nextPHeaderPosition < 0) {
@@ -124,7 +123,7 @@ int loadElf(char* filename) {
       }
 
       // and move up to the segment itself
-      if (fseek(ElfFile, pHeader.offset, SEEK_CUR) != 0) {
+      if (fseek(ElfFile, pHeader.offset, SEEK_SET) != 0) {
         std::cerr << "Can't seek into segment #" << segmentNum << std::endl;
         return 3015;
       }
@@ -132,6 +131,7 @@ int loadElf(char* filename) {
 
     // display some information about the segment we are about to load
     std::cerr << std::hex;
+    std::cerr << "Loading segment # " << segmentNum << std::endl;
     std::cerr << "Flags            : 0x" << pHeader.flags << std::endl;
     std::cerr << "Size in file     : 0x" << pHeader.filesz << std::endl;
     std::cerr << "Size in memory   : 0x" << pHeader.memsz << std::endl;
@@ -139,22 +139,31 @@ int loadElf(char* filename) {
     std::cerr << "Physical address : 0x" << pHeader.paddr << std::endl;
     std::cerr << "Virtual address  : 0x" << pHeader.vaddr << std::endl;
 
-    // check we have enough memory
-    if (pHeader.memsz > RAMSIZE) {
-      std::cerr << "Can't fit segment #" << segmentNum << " into memory\n";
-      return 3016;
+    // // check we have enough memory
+    // if (pHeader.memsz > RAMSIZE) {
+    //   std::cerr << "Can't fit segment #" << segmentNum << " into memory\n";
+    //   return 3016;
+    // }
+
+    if (segmentNum == 0) {
+      mem.setRamStartAddress(pHeader.paddr);
+      // initialise program counter
+      cpu.setPC(header.e_entry);
+      // initialise stack pointer
+      cpu.setReg(2, mem.getRamStartAddress() + RAMSIZE - 1);  // set SP to last address in RAM
     }
 
     // read the segment into memory
-    if (fread(mem.ram8, 1, pHeader.filesz, ElfFile) != pHeader.filesz) {
+    if (fread(mem.ram8 + (int)(pHeader.paddr - mem.getRamStartAddress()), 1, pHeader.filesz, ElfFile) != pHeader.filesz) {
       std::cerr << "Can't load segment #" << segmentNum << "into RAM\n";
       return 3017;
     }
 
-    // reset the un-initialized data into memory (arrays, etc...)
-    for (uint32_t i = 0; i < (pHeader.memsz - pHeader.filesz); i++) {
-      mem.set8(pHeader.filesz + i , 0);
-    }
+
+    // // reset the un-initialized data into memory (arrays, etc...)
+    // for (uint32_t i = 0; i < (pHeader.memsz - pHeader.filesz); i++) {
+    //   mem.set8(pHeader.filesz + i , 0);
+    // }
 
     // restore the file cursor for the next segment header
     if (nextPHeaderPosition != 0) {
@@ -164,24 +173,10 @@ int loadElf(char* filename) {
       }
     }
 
-    // This part needs a full review
-
-
-    // FIXME : take into account the 32bits alignments
-    mem.programByteSize = pHeader.filesz;
-
-    // FIXME : seems like the addresses are starting at beg. of elf file ???
-    mem.setRamStartAddress(pHeader.paddr + header.e_ehsize + header.e_phentsize); // !@!@#!!!@
-
-    // initialise program counter
-    cpu.setPC(header.e_entry);
-
-    // initialise stack pointer
-    cpu.setReg(2, mem.getRamStartAddress() + RAMSIZE - 1);  // set SP to last address in RAM
 
 
     // dump the memory
-    for (uint32_t address = mem.getRamStartAddress(); address < mem.getRamStartAddress() + mem.programByteSize; address += 4){
+    for (uint32_t address = pHeader.paddr; address < pHeader.paddr+pHeader.memsz; address += 4){
       std::cerr << address << " :    ";
       std::cerr << std::setfill('0') << std::setw(8) << mem.get32(address) << std::endl;
     }

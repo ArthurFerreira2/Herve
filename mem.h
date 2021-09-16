@@ -17,7 +17,6 @@ class Mem {
     int32_t *ram32;
 
     uint32_t ramStartAddress = {0};
-    uint32_t programByteSize = {0};  // USELESSSSSS
 
     Mem();
     ~Mem();

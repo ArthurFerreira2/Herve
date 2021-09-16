@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   // Check a program has been provided as 1st argument
   if (argc != 2){
     std::cerr << "Usage : herve program\n";
-    exit(1001);
+    exit(EXIT_FAILURE);
   }
 
   // Load program into memory
@@ -36,8 +36,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Quitting
-  std::cerr << "\n\nProgram terminated\n";
-  std::cerr << "After executing " << std::dec << cpu.instructionCycles << " instructions\n";
+  std::cerr << "\n\nProgram halted after " << std::dec << cpu.instructionCycles << " instruction cycles\n";
 
   exit(EXIT_SUCCESS);
 }
