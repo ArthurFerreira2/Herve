@@ -12,26 +12,30 @@ uint32_t Cpu::getPC() {
 
 
 void Cpu::setPC(uint32_t address) {
-  if (address < (mem.getRamStartAddress() + RAMSIZE)) PC = address;
+  if (address < (mem.getRamStartAddress() + RAMSIZE))
+    PC = address;
 }
 
 
 int32_t Cpu::getReg(int reg){
-  if (reg > 0 && reg < 31) return X[reg];
-  else return 0;
+  if (reg > 0 && reg < 31)
+    return X[reg];
+  else
+    return 0;
 }
 
 
 void Cpu::setReg(int reg, int32_t value) {
-  if (reg > 0 && reg < 31) X[reg] = value;
+  if (reg > 0 && reg < 31)
+    X[reg] = value;
 }
 
 
 void Cpu::printRegs() {
   for (int i=0; i<32; i++) {
-    std::cerr  << "|" << regNames[i] << " "<< std::setfill(' ') << std::setw(8) << std::hex << X[i];
-    if (!((i+1)%6))
-      std::cerr << " |\n";
+    std::cerr << regNames[i] << " "<< std::setfill('0') << std::setw(8) << std::hex << X[i]  << " | ";
+    if (!((i+1)%8))
+      std::cerr << "\n";
   }
   std::cerr << std::endl;
   return;
@@ -56,19 +60,15 @@ int Cpu::exec(int cyclesCount){
   // FETCH
   IR = mem.get32(PC);  // instruction register
 
-
   std::cerr << "\nPC  : " << std::hex << std::setfill('0') << std::setw(8) << PC;
   std::cerr << "\tInstruction : " << std::hex << std::setfill('0') << std::setw(8) << IR << "\t";
-
 
   // Increment Program Counter
   PC += 4;  // might be useless - in some case this has to be undo ... keeping for better readability
 
-
   // the opcode is not always sufficient to decode the instruction - func3 and sometimes func7 are also necessary
   // but it already gives us the format of the instruction which allows further decoding
   opcode = IR & 0b1111111;
-
 
 
   // U-TYPE (upper immediate)
@@ -80,9 +80,9 @@ int Cpu::exec(int cyclesCount){
     rd =  (IR >> 7) & 0b11111;
     imm = IR & 0xFFFFF000;
 
-    if (rd != 0) X[rd] = imm;
+    if (rd != 0)
+      X[rd] = imm;
   }
-
 
   else if (opcode == 0b0010111) {                                               // AUIPC - Add Upper Immediate to PC
 
@@ -91,9 +91,9 @@ int Cpu::exec(int cyclesCount){
     rd =  (IR >> 7) & 0b11111;
     imm = IR & 0xFFFFF000;
 
-    if (rd != 0) X[rd] = PC - 4 + imm;
+    if (rd != 0)
+      X[rd] = PC - 4 + imm;
   }
-
 
 
   // J-TYPE (jumps)
@@ -113,10 +113,10 @@ int Cpu::exec(int cyclesCount){
     else
       imm &= 0xFFFFF7FF;    // otherwise we unset the 11th bit of imm
 
-    if (rd != 0) X[rd] =  PC;  // return address
+    if (rd != 0)
+      X[rd] =  PC;  // return address
     PC = (PC - 4 + imm);    // jump relative to PC
   }
-
 
   else if (opcode == 0b1100111) {                                               // JALR - Jump And Link Register
 
@@ -130,7 +130,7 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {                                                            // Only one case in RV32I
       case (0b000):
-        PC = (X[rs1] + imm) & 0xFFFFFFFE; // be sure we won't get into any odd address
+        PC = (X[rs1] + imm) & 0xFFFFFFFE; // never odd address
         if (rd != 0)
           X[rd] = temp;
       break;
@@ -140,7 +140,6 @@ int Cpu::exec(int cyclesCount){
       state = HALTED;
     }
   }
-
 
 
   // B-TYPE (branches)
@@ -161,27 +160,33 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):                                                             // BEQ - Branch Equal
-        if (X[rs1] == X[rs2]) PC = PC - 4 + imm;
+        if (X[rs1] == X[rs2])
+          PC = PC - 4 + imm;
       break;
 
       case (0b001):                                                             // BNE - Branch Not Equal
-        if (X[rs1] != X[rs2]) PC = PC - 4 + imm;
+        if (X[rs1] != X[rs2])
+          PC = PC - 4 + imm;
       break;
 
       case (0b100):                                                             // BLT - Branch Less Than
-        if (X[rs1] < X[rs2]) PC = PC - 4 + imm;
+        if (X[rs1] < X[rs2])
+          PC = PC - 4 + imm;
       break;
 
       case (0b101):                                                             // BGE - Branch Greater or Equal
-        if (X[rs1] >= X[rs2]) PC = PC - 4 + imm;
+        if (X[rs1] >= X[rs2])
+          PC = PC - 4 + imm;
       break;
 
       case (0b110):                                                             // BLTU - Branch Less Than Unsigned
-        if ((uint32_t)X[rs1] < (uint32_t)X[rs2]) PC = PC - 4 + imm;
+        if ((uint32_t)X[rs1] < (uint32_t)X[rs2])
+          PC = PC - 4 + imm;
       break;
 
       case (0b111):                                                             // BGEU - Branch Greater or Equal Unsigned
-        if ((uint32_t)X[rs1] >= (uint32_t)X[rs2]) PC = PC - 4 + imm;
+        if ((uint32_t)X[rs1] >= (uint32_t)X[rs2])
+          PC = PC - 4 + imm;
       break;
 
       default:
@@ -189,7 +194,6 @@ int Cpu::exec(int cyclesCount){
         state = HALTED;
     }
   }
-
 
 
   // I-TYPE (immediate Loads)
@@ -211,21 +215,25 @@ int Cpu::exec(int cyclesCount){
       break;
 
       case (0b001):                                                             // LH - Load Half word
-        if (rd != 0) X[rd] = mem.get16(X[rs1] + imm);
-        if (X[rd] & 0x8000) // is negative
+        if (rd != 0)
+          X[rd] = mem.get16(X[rs1] + imm);
+        if (X[rd] & 0x8000)  // is negative
           X[rd] |= 0xFFFF0000;  // sign extention
       break;
 
       case (0b010):                                                             // LW - Load Word
-        if (rd != 0) X[rd] = mem.get32(X[rs1] + imm);
+        if (rd != 0)
+          X[rd] = mem.get32(X[rs1] + imm);
       break;
 
       case (0b100):                                                             // LBU - Load Byte Unsigned
-        if (rd != 0) X[rd] = (uint8_t)mem.get8(X[rs1] + imm);
+        if (rd != 0)
+          X[rd] = (uint8_t)mem.get8(X[rs1] + imm);
       break;
 
       case (0b101):                                                             // LHU - Load Half word Unsigned
-        if (rd != 0) X[rd] = (uint16_t)mem.get16(X[rs1] + imm);
+        if (rd != 0)
+          X[rd] = (uint16_t)mem.get16(X[rs1] + imm);
       break;
 
       default:
@@ -233,7 +241,6 @@ int Cpu::exec(int cyclesCount){
         state = HALTED;
     }
   }
-
 
   // S-TYPE (stores)
 
@@ -266,7 +273,6 @@ int Cpu::exec(int cyclesCount){
   }
 
 
-
   // I-TYPE (immediate) ALU
 
   else if (opcode == 0b0010011) {
@@ -280,42 +286,51 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):                                                             // ADDI - ADD Immediate
-        if (rd != 0) X[rd] = X[rs1] + imm;
+        if (rd != 0)
+          X[rd] = X[rs1] + imm;
       break;
 
       case (0b010):                                                             // SLTI - Set Less Than Immediate
-        if (rd != 0) X[rd] = (X[rs1] < imm) ? 1 : 0;
+        if (rd != 0)
+          X[rd] = (X[rs1] < imm) ? 1 : 0;
       break;
 
       case (0b011):                                                             // SLTIU - Set Less Than Immediate Unsigned
-        if (rd != 0) X[rd] = (uint32_t)X[rs1] < (uint32_t)imm ? 1 : 0;
+        if (rd != 0)
+          X[rd] = (uint32_t)X[rs1] < (uint32_t)imm ? 1 : 0;
       break;
 
       case (0b100):                                                             // XORI - XOR Immediate
-        if (rd != 0) X[rd] = X[rs1] ^ imm;
+        if (rd != 0)
+          X[rd] = X[rs1] ^ imm;
       break;
 
       case (0b110):                                                             // ORI - OR Immediate
-        if (rd != 0) X[rd] = X[rs1] | imm;
+        if (rd != 0)
+          X[rd] = X[rs1] | imm;
       break;
 
       case (0b111):                                                             // ANDI - AND Immediate
-        if (rd != 0) X[rd] = X[rs1] & imm;
+        if (rd != 0)
+          X[rd] = X[rs1] & imm;
       break;
 
       case (0b001):                                                             // SLLI - Shift Left Logical Immediate
         shamt = (IR >> 20) & 0b11111;
         // std::cerr << " SHAMT : " << shamt;
-        if (rd != 0) X[rd] = X[rs1] << shamt;
+        if (rd != 0)
+          X[rd] = X[rs1] << shamt;
       break;
 
       case (0b101):
         shamt = (IR >> 20) & 0b11111;
-        if (IR & 0x40000000) {  // if 30th bit of IR is set                       // SRAI - Shift Right Arithmetical Immediate
-          if (rd != 0) X[rd] = X[rs1] >> shamt;
+        if (IR & 0x40000000) {  // if 30th bit of IR is set                     // SRAI - Shift Right Arithmetical Immediate
+          if (rd != 0)
+            X[rd] = X[rs1] >> shamt;
         }
         else {                                                                  // SRLI - Shift Right Logical Immediate
-          if (rd != 0) X[rd] = (uint32_t)X[rs1] >> shamt;
+          if (rd != 0)
+            X[rd] = (uint32_t)X[rs1] >> shamt;
         }
       break;
 
@@ -325,8 +340,6 @@ int Cpu::exec(int cyclesCount){
     }
   }
 
-
-  // ***********  ABOVE : DONE AND VERIFIED - BELOW : TO BE CHECKED  ***********
 
   // R-TYPE (register to register)
 
@@ -342,44 +355,54 @@ int Cpu::exec(int cyclesCount){
     switch (func3) {
       case (0b000):
         if (IR & 0x40000000) { // if 30th bit of IR is set
-          if (rd != 0) X[rd] = X[rs1] - X[rs2];                                 // SUB - substract
+          if (rd != 0)
+            X[rd] = X[rs1] - X[rs2];                                            // SUB - substract
         }
         else {
-          if (rd != 0) X[rd] = X[rs1] + X[rs2];                                 // ADD
+          if (rd != 0)
+            X[rd] = X[rs1] + X[rs2];                                            // ADD
         }
       break;
 
       case (0b001):                                                             // SLL - Shift Left Logical
-        if (rd != 0) X[rd] = X[rs1] << (X[rs2]%32);
+        if (rd != 0)
+          X[rd] = X[rs1] << (X[rs2]%32);
       break;
 
       case (0b010):                                                             // SLT - Set Less Than
-        if (rd != 0) X[rd] = (X[rs1] < X[rs2]) ? 1 : 0;
+        if (rd != 0)
+          X[rd] = (X[rs1] < X[rs2]) ? 1 : 0;
       break;
 
       case (0b011):                                                             // SLTU - Set Less Than Unsigned
-        if (rd != 0) X[rd] = (uint32_t)X[rs1] < (uint32_t)X[rs2] ? 1 : 0;
+        if (rd != 0)
+          X[rd] = (uint32_t)X[rs1] < (uint32_t)X[rs2] ? 1 : 0;
       break;
 
       case (0b100):                                                             // XOR
-        if (rd != 0) X[rd] = X[rs1] ^ X[rs2];
+        if (rd != 0)
+          X[rd] = X[rs1] ^ X[rs2];
       break;
 
       case (0b101):
         if (IR & 0x40000000) { // if 30th bit of IR is set
-          if (rd != 0) X[rd] = X[rs1] >> (X[rs2]%32);                            // SRA - Shift Right Arithmetical
+          if (rd != 0)
+            X[rd] = X[rs1] >> (X[rs2]%32);                                      // SRA - Shift Right Arithmetical
         }
         else {
-          if (rd != 0) X[rd] = (uint32_t)X[rs1] >> (X[rs2]%32);                  // SRL - Shift Right Logical
+          if (rd != 0)
+            X[rd] = (uint32_t)X[rs1] >> (X[rs2]%32);                            // SRL - Shift Right Logical
         }
       break;
 
       case (0b110):                                                             // OR
-        if (rd != 0) X[rd] = X[rs1] | X[rs2];
+        if (rd != 0)
+          X[rd] = X[rs1] | X[rs2];
       break;
 
       case (0b111):                                                             // AND
-        if (rd != 0) X[rd] = X[rs1] & X[rs2];
+        if (rd != 0)
+          X[rd] = X[rs1] & X[rs2];
       break;
 
       default:
@@ -389,11 +412,10 @@ int Cpu::exec(int cyclesCount){
   }
 
 
-  // FENCE
+  // FENCE ...
 
   else if (opcode == 0b0001111) {
 
-    std::cerr << "FENCE";
 
     func3 = (IR >> 12) & 0b111;
     rd =    (IR >> 7)  & 0b11111;
@@ -401,7 +423,12 @@ int Cpu::exec(int cyclesCount){
 
     switch (func3) {
       case (0b000):
-         // no operation
+        std::cerr << "FENCE";
+        // no operation
+      break;
+      case (0b001):
+        std::cerr << "FENCE.I";
+        // no operation
       break;
 
       default:
@@ -430,11 +457,26 @@ int Cpu::exec(int cyclesCount){
 
         else if (func12 == 0) {                                                 // ECALL - Environment Call
 
-          if (X[17] == 93) {                                                    // convention for tests in the tests folder
+/*
+.data2
+  msg: .asciz "Assembly rocks"    # Allocates a string on memory
+.text
+_start:
+  li a0, 1      # a0: File descriptor = 1 (stdout)
+  la a1, msg    # a1: Message buffer address
+  li a2, 14     # a2: Message buffer size (14 bytes)
+  li a7, 64     # Syscall code (write = 64)
+  ecall         # Invoke the syscall
+*/
+
+
+
+
+          if (X[17] == 93) {                                                    // convention for instruction tests
             if (X[10] == 0)
-              std::cout << "All tests passed\n";
+              std::cout << " All tests passed\n";
             else
-             std::cout << "test # " << X[14] << " failled\n";
+             std::cout << "test # " << X[14] << " failled";
           }
           else
             std::cerr << " Illegal System Call" << std::endl;
@@ -445,7 +487,7 @@ int Cpu::exec(int cyclesCount){
 
       default:
         std::cerr << " Illegal E-type instruction" << std::endl;
-        // state = HALTED;
+        // state = HALTED;  // we ignore them for now...
     }
   }
 

@@ -1,12 +1,8 @@
 #include <iostream>
-#include <iomanip>
-#include <cstdio>
-#include <cstdlib>
 
 #include "cpu.h"
 #include "mem.h"
 #include "elf.h"
-
 
 Cpu cpu;
 Mem mem;
@@ -25,7 +21,7 @@ int main(int argc, char* argv[]) {
   // Load program into memory
   int errorCode = loadElf(argv[1]);
   if(errorCode) {
-    std::cerr << "Program borted\n";
+    std::cerr << "Error " << errorCode << " - Program aborted\n";
     exit(errorCode);
   }
 
@@ -36,7 +32,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Quitting
-  std::cerr << "\n\nProgram halted after " << std::dec << cpu.instructionCycles << " instruction cycles\n";
+  std::cout << "\n\nProgram halted after " << std::dec << cpu.instructionCycles << " instruction cycles\n";
 
   exit(EXIT_SUCCESS);
 }

@@ -4,3 +4,5 @@ herve
 .vscode
 trace*
 scratch
+asm-tests/Makefile
+asm-tests/riscv_test.h

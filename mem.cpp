@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 #include "mem.h"
 
 
@@ -55,7 +54,7 @@ int32_t Mem::get32(uint32_t address) {
     return ram32[address >> 2];
   else {
     std::cerr << "\n\nIllegal Memory Read\n\n";
-    return 0;
+    return 0; 
   }
 }
 

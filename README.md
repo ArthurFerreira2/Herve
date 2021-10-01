@@ -4,52 +4,47 @@
 # Hervé, the RV simulator
 a tiny RISC-V RV32I ISA Simulator in C++ under the MIT Licence
 
-## WIP -- I have to update this readme : We now extract loads froms ELF files and can execute C code ! - [cf. README.md in the C-tests folder](C-tests/README.md)
-
 I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator ... **Welcome to the twisted world of computer scientists**
 
-The goal is to execute simple programs assembled with GAS (The GNU Assembler) and converted to binary files with objcopy (no elf support for the moment).
 
-At this time I'm planning only :
-- Flat memory (no MMU)
-- Two memory mapped I/O : getChar and putChar until I implement ecall
-- Restricted to the RV32I ISA (with fence implemented as NOP)
+Herve now extract loads froms ELF files and can execute compiled C code ! - cf. [README.md](C-tests/README.md) in the C-tests folder
+
 
 ## loader
 
 Our memory is only 64KiB  (who needs more ?)  
-The load point is 0 : we load the binary at address 0 and further then set program counter (PC) to 0  
-The heap is set right after the static area (which follows itself the text area)  
-The stack should be set at address 0xFFFF and decrements - a stack underflow will overite code  
+we load the binaries from the ELF into memory and set the program counter (PC).   
+The stack is set at address 0xFFFF
+
+Memory is flat : no paging, no access attributes and thus you can read, write and execute at any location.
 
 ## memory mapped I/O
 
-this is a primitive solution until I implement ecall
+this is a primitive solution until I implement ecalls
 
 ```C
 #define GETCHAR 0x0f000000
 #define PUTCHAR 0x0e000000
 ```
 store a byte at 0x0e000000 and it will be output to stdout
-keypresses will be available at address 0x0f000000
+keypresses **will** be available at address 0x0f000000
 
 ## progress update
 
 All RV32I instructions were implemented and fully tested.
 
-I use the test suite published at : https://github.com/riscv-software-src/riscv-tests and his short shell script to automate the testings
+I use the test suite published at : https://github.com/riscv-software-src/riscv-tests and this short shell script to automate the testings
 
 ```shell
 #!/bin/sh
 
-for test in `ls tests/ | grep -v dump `
+for test in `ls tests/ | grep -v dump | grep -v traces`
 do
-  echo -n "$test : "
+  echo -n "$test\t: "
   ./herve ./tests/$test 2> tests/$test.traces
 done
-
-
 ```
+
 | Instruction | Description                         | Implemented | Tested |
 |-------------|-------------------------------------|:-----------:|:------:|
 | LUI         | Load Upper Immediate                | yes         | pass   |
@@ -96,69 +91,170 @@ done
 \* Any unimplemented instrution will halt the execution so I had to implement FENCE as a NOP.  
 
 
-## compile and run
+## Usage
 
-### compile
+### build
 
 ```shell
 make
 ```
 
-you now should have an executable named herve.
+You now should have an executable called herve.
 
 ### run
 
-Please refer to README.md under the **RV32I-Examples** folder for information on how to assemble and the README.md under C-tests for information on how to compile your sources into risc-v binaries - Makefiles are also provided.
+Please refer to the [README.md](asm-tests/README.md) under the asm-tests folder for information on how to assemble and the [README.md](C-tests/README.md) under C-tests for information on how to compile your sources into risc-v elf binaries - Makefiles/shell scripts are also provided.
 
 
 ```shell
-
-$ ./herve RV32I-Examples/helloWorld.bin 2>traces
-Loaded 14 words from "helloWorld.bin" into memory
+$ ./herve asm-tests/helloWorld.elf 2>traces
 Hello
 
-Program terminated
+
+Program halted after 14 instruction cycles
 ```
 
 The traces of the execution were redirected into the **traces** file :
 
 ```
 $ cat traces
+Number of segments : 1
+Seg: 0  moving cursor to 4096
 
-PC  : 00000000	Instruction : 0e0002b7	U-TYPE LUI
-OP : 055   F3 : 000   F7 : 000   RS1 : 00   RS2 : 00   RD : 05
-x00 : 00000000	x01 : 00000000	x02 : 00000000	x03 : 00000000
-x04 : 00000000	x05 : 0e000000	x06 : 00000000	x07 : 00000000
-x08 : 00000000	x09 : 00000000	x10 : 00000000	x11 : 00000000
-x12 : 00000000	x13 : 00000000	x14 : 00000000	x15 : 00000000
-x16 : 00000000	x17 : 00000000	x18 : 00000000	x19 : 00000000
-x20 : 00000000	x21 : 00000000	x22 : 00000000	x23 : 00000000
-x24 : 00000000	x25 : 00000000	x26 : 00000000	x27 : 00000000
-x28 : 00000000	x29 : 00000000	x30 : 00000000	x31 : 00000000
+Loading segment  : 0x0
+Flags            : 0x5
+Size in file     : 0x38
+Size in memory   : 0x38
+Physical address : 0x80000000
+Virtual address  : 0x80000000
+start of memory  : 0x80000000
+Entry point      : 0x80000000
+Stack Pointer    : 0x8000ffff
+80000000 0e0002b7
+80000004 04800313
+80000008 0062a023
+8000000c 06500313
+80000010 0062a023
+80000014 06c00313
+80000018 0062a023
+8000001c 06c00313
+80000020 0062a023
+80000024 06f00313
+80000028 0062a023
+8000002c 00a00313
+80000030 0062a023
+80000034 00100073
 
-PC  : 00000004	Instruction : 04800313	I-TYPE ALU
-OP : 019   F3 : 000   F7 : 000   RS1 : 00   RS2 : 00   RD : 06
-x00 : 00000000	x01 : 00000000	x02 : 00000000	x03 : 00000000
-x04 : 00000000	x05 : 0e000000	x06 : 00000048	x07 : 00000000
-x08 : 00000000	x09 : 00000000	x10 : 00000000	x11 : 00000000
-x12 : 00000000	x13 : 00000000	x14 : 00000000	x15 : 00000000
-x16 : 00000000	x17 : 00000000	x18 : 00000000	x19 : 00000000
-x20 : 00000000	x21 : 00000000	x22 : 00000000	x23 : 00000000
-x24 : 00000000	x25 : 00000000	x26 : 00000000	x27 : 00000000
-x28 : 00000000	x29 : 00000000	x30 : 00000000	x31 : 00000000
+PC  : 80000000	Instruction : 0e0002b7	U-TYPE LUI
+OP :  37   F3 : 0   F7 :   0   RS1 : zr    RS2 : zr    RD : t0    IMM :  e000000
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000000 | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
 
-PC  : 00000008	Instruction : 0062a023	S-TYPE
-OP : 035   F3 : 002   F7 : 000   RS1 : 05   RS2 : 06   RD : 06
-x00 : 00000000	x01 : 00000000	x02 : 00000000	x03 : 00000000
-x04 : 00000000	x05 : 0e000000	x06 : 00000048	x07 : 00000000
-x08 : 00000000	x09 : 00000000	x10 : 00000000	x11 : 00000000
-x12 : 00000000	x13 : 00000000	x14 : 00000000	x15 : 00000000
-x16 : 00000000	x17 : 00000000	x18 : 00000000	x19 : 00000000
-x20 : 00000000	x21 : 00000000	x22 : 00000000	x23 : 00000000
-x24 : 00000000	x25 : 00000000	x26 : 00000000	x27 : 00000000
-x28 : 00000000	x29 : 00000000	x30 : 00000000	x31 : 00000000
 
-<...>
+PC  : 80000004	Instruction : 04800313	I-TYPE ALU
+OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : zr    RD : t1    IMM :       48
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000048 | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000008	Instruction : 0062a023	S-TYPE
+OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000048 | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 8000000c	Instruction : 06500313	I-TYPE ALU
+OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       65
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000065 | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000010	Instruction : 0062a023	S-TYPE
+OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000065 | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000014	Instruction : 06c00313	I-TYPE ALU
+OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       6c
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000018	Instruction : 0062a023	S-TYPE
+OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 8000001c	Instruction : 06c00313	I-TYPE ALU
+OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       6c
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000020	Instruction : 0062a023	S-TYPE
+OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000024	Instruction : 06f00313	I-TYPE ALU
+OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       6f
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006f | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000028	Instruction : 0062a023	S-TYPE
+OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006f | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 8000002c	Instruction : 00a00313	I-TYPE ALU
+OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :        a
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000000a | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000030	Instruction : 0062a023	S-TYPE
+OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000000a | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
+
+
+PC  : 80000034	Instruction : 00100073	E-TYPE
+OP :  73   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : zr    IMM :        0
+zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000000a | t2  00000000 |
+s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
+a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
+s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
 ```
 
 

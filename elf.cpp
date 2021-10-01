@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iomanip>
-#include <cstdio>
 #include <cstdlib>
 
 #include "cpu.h"
@@ -64,7 +63,11 @@ int loadElf(char* filename) {
     return 3008;
   }
 
+
+  // header looks fine so far... let's read the program table entries
   // read the program headers : we expect only one - but might be more
+
+
   Elf32ProgramHeader pHeader;
 
   // check we have at least one .text segment (program)
@@ -114,7 +117,9 @@ int loadElf(char* filename) {
 
     // if the segment is not right after this program header
     if (pHeader.offset != 0) {
-      // std::cerr << "Seg: " << segmentNum << "  moving cursor to " << pHeader.offset << std::endl;
+
+      std::cerr << "Seg: " << segmentNum << "  moving cursor to " << pHeader.offset << std::endl;
+
       // save the file position, for the next segment header
       nextPHeaderPosition = ftell(ElfFile);
       if (nextPHeaderPosition < 0) {
@@ -131,7 +136,7 @@ int loadElf(char* filename) {
 
     // display some information about the segment we are about to load
     std::cerr << std::hex;
-    std::cerr << "Loading segment # " << segmentNum << std::endl;
+    std::cerr << "\nLoading segment  : 0x" << segmentNum << std::endl;
     std::cerr << "Flags            : 0x" << pHeader.flags << std::endl;
     std::cerr << "Size in file     : 0x" << pHeader.filesz << std::endl;
     std::cerr << "Size in memory   : 0x" << pHeader.memsz << std::endl;
@@ -139,18 +144,26 @@ int loadElf(char* filename) {
     std::cerr << "Physical address : 0x" << pHeader.paddr << std::endl;
     std::cerr << "Virtual address  : 0x" << pHeader.vaddr << std::endl;
 
-    // // check we have enough memory
-    // if (pHeader.memsz > RAMSIZE) {
-    //   std::cerr << "Can't fit segment #" << segmentNum << " into memory\n";
-    //   return 3016;
-    // }
+    // check we have enough memory
+    if (pHeader.memsz > RAMSIZE) {
+      std::cerr << "Can't fit segment #" << segmentNum << " into memory\n";
+      return 3016;
+    }
 
     if (segmentNum == 0) {
+      // initialize virtual address
       mem.setRamStartAddress(pHeader.paddr);
+      std::cerr << "start of memory  : 0x" << mem.getRamStartAddress() << std::endl;
+
+
       // initialise program counter
       cpu.setPC(header.e_entry);
+      // cpu.setPC(pHeader.paddr);
+      std::cerr << "Entry point      : 0x" << cpu.getPC() << std::endl;
+
       // initialise stack pointer
       cpu.setReg(2, mem.getRamStartAddress() + RAMSIZE - 1);  // set SP to last address in RAM
+      std::cerr << "Stack Pointer    : 0x" << cpu.getReg(2) << std::endl;
     }
 
     // read the segment into memory
@@ -160,10 +173,10 @@ int loadElf(char* filename) {
     }
 
 
-    // // reset the un-initialized data into memory (arrays, etc...)
-    // for (uint32_t i = 0; i < (pHeader.memsz - pHeader.filesz); i++) {
-    //   mem.set8(pHeader.filesz + i , 0);
-    // }
+    // reset the un-initialized data into memory (arrays, etc...)
+    for (uint32_t i = 0; i < (pHeader.memsz - pHeader.filesz); i++) {
+      mem.set8(pHeader.filesz + i , 0);
+    }
 
     // restore the file cursor for the next segment header
     if (nextPHeaderPosition != 0) {
@@ -174,10 +187,9 @@ int loadElf(char* filename) {
     }
 
 
-
     // dump the memory
-    for (uint32_t address = pHeader.paddr; address < pHeader.paddr+pHeader.memsz; address += 4){
-      std::cerr << address << " :    ";
+    for (uint32_t address = pHeader.paddr; address < pHeader.paddr+pHeader.memsz; address += 4) {
+      std::cerr << std::setfill('0') << std::setw(8) << address << " ";
       std::cerr << std::setfill('0') << std::setw(8) << mem.get32(address) << std::endl;
     }
   }
