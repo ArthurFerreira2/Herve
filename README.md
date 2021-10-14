@@ -1,6 +1,6 @@
+[![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml)
 
-[![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/build%20and%20run%20tests.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/build%20and%20run%20tests.yml)
-
+[![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml)
 
 # Hervé, the RV simulator
 A tiny RISC-V RV32im ISA Simulator in C++ under the MIT Licence
