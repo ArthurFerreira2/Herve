@@ -1,5 +1,4 @@
 [![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml)
-
 [![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml)
 
 # Hervé, the RV simulator
