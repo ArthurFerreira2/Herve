@@ -1,4 +1,5 @@
 
+[![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/build%20and%20run%20tests.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/build%20and%20run%20tests.yml)
 
 
 # Hervé, the RV simulator
