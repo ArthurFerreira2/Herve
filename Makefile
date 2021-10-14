@@ -15,6 +15,4 @@ clean:
 
 check: herve
 	cd tests && ./runTests.sh
-
-distcheck : herve
-	touch dist
+ 
