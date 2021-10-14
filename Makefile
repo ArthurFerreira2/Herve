@@ -2,10 +2,19 @@ CXX = g++
 FLAGS = -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3
 LIBS =
 
-herve: herve.cpp elf.cpp cpu.cpp mem.cpp
+%.o: %.cpp
+	$(CXX) $(FLAGS) -c -o $@ $<
+
+herve: cpu.o elf.o  herve.o  mem.o
 	$(CXX) $(FLAGS) $^ -o $@ $(LIBS)
 
-.PHONY: clean
+.PHONY: clean check
 
 clean:
-	rm -f herve
+	rm -f *.o herve
+
+check: herve
+	cd tests && ./runTests.sh
+
+distcheck : herve
+	touch dist

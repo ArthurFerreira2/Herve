@@ -1,3 +1,5 @@
+// OBSOLETE :  was used in the early versions of herve (before ELF was supported)
+
 // Only works if I put the program entry point firsts ....
 // I need a loader that make some initializations and jump to main ... and then ebreak
 

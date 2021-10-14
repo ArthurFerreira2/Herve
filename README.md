@@ -2,10 +2,9 @@
 
 
 # Hervé, the RV simulator
-a tiny RISC-V RV32I ISA Simulator in C++ under the MIT Licence
+A tiny RISC-V RV32im ISA Simulator in C++ under the MIT Licence
 
 I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator ... **Welcome to the twisted world of computer scientists**
-
 
 Herve now extract loads froms ELF files and can execute compiled C code ! - cf. [README.md](C-tests/README.md) in the C-tests folder
 
@@ -13,8 +12,8 @@ Herve now extract loads froms ELF files and can execute compiled C code ! - cf. 
 ## loader
 
 Our memory is only 64KiB  (who needs more ?)  
-we load the binaries from the ELF into memory and set the program counter (PC).   
-The stack is set at address 0xFFFF
+We load the binaries from the ELF into memory and set the program counter (PC).   
+The stack is set at the highest address
 
 Memory is flat : no paging, no access attributes and thus you can read, write and execute at any location.
 
@@ -31,19 +30,104 @@ keypresses **will** be available at address 0x0f000000
 
 ## progress update
 
-All RV32I instructions were implemented and fully tested.
+All RV32im instructions were implemented and fully tested.
 
-I use the test suite published at : https://github.com/riscv-software-src/riscv-tests and this short shell script to automate the testings
+I use the test suite published at : https://github.com/riscv-software-src/riscv-tests and a shell script to automate testings
 
 ```shell
-#!/bin/sh
+#!/bin/bash
 
-for test in `ls tests/ | grep -v dump | grep -v traces`
+rm ./testsResults
+
+for test in `cat ./testsList`
 do
-  echo -n "$test\t: "
-  ./herve ./tests/$test 2> tests/$test.traces
+  echo -n "$test : " >> ./testsResults
+  ../herve -t -i ./$test > ./$test.traces 2>> ./testsResults
 done
+
+
+TARGET=`wc -l ./testsList | cut -d " " -f 1`
+REACHED=`grep 'All tests passed' ./testsResults | wc -l`
+
+if [[ $REACHED -eq $TARGET ]]
+then
+  echo "All tests passed"
+  exit 0
+else
+  echo "Some test failled"
+  exit 1
+fi
+
 ```
+
+You can invoque it using make :
+
+```shell
+$ make clean && make check
+rm -f *.o herve
+g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 -c -o cpu.o cpu.cpp
+g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 -c -o elf.o elf.cpp
+g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 -c -o herve.o herve.cpp
+g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 -c -o mem.o mem.cpp
+g++ -std=c++17 -pedantic -Wpedantic -Wall -Werror -O3 cpu.o elf.o herve.o mem.o -o herve
+cd tests && ./runTests.sh
+All tests passed
+```
+
+The result for each test is logged in the testResults file :
+
+```shell
+$ cat tests/testsResults
+rv32ui-p-add :  All tests passed
+rv32ui-p-addi :  All tests passed
+rv32ui-p-and :  All tests passed
+rv32ui-p-andi :  All tests passed
+rv32ui-p-auipc :  All tests passed
+rv32ui-p-beq :  All tests passed
+rv32ui-p-bge :  All tests passed
+rv32ui-p-bgeu :  All tests passed
+rv32ui-p-blt :  All tests passed
+rv32ui-p-bltu :  All tests passed
+rv32ui-p-bne :  All tests passed
+rv32ui-p-fence_i :  All tests passed
+rv32ui-p-jal :  All tests passed
+rv32ui-p-jalr :  All tests passed
+rv32ui-p-lb :  All tests passed
+rv32ui-p-lbu :  All tests passed
+rv32ui-p-lh :  All tests passed
+rv32ui-p-lhu :  All tests passed
+rv32ui-p-lui :  All tests passed
+rv32ui-p-lw :  All tests passed
+rv32ui-p-or :  All tests passed
+rv32ui-p-ori :  All tests passed
+rv32ui-p-sb :  All tests passed
+rv32ui-p-sh :  All tests passed
+rv32ui-p-simple :  All tests passed
+rv32ui-p-sll :  All tests passed
+rv32ui-p-slli :  All tests passed
+rv32ui-p-slt :  All tests passed
+rv32ui-p-slti :  All tests passed
+rv32ui-p-sltiu :  All tests passed
+rv32ui-p-sltu :  All tests passed
+rv32ui-p-sra :  All tests passed
+rv32ui-p-srai :  All tests passed
+rv32ui-p-srl :  All tests passed
+rv32ui-p-srli :  All tests passed
+rv32ui-p-sub :  All tests passed
+rv32ui-p-sw :  All tests passed
+rv32ui-p-xor :  All tests passed
+rv32ui-p-xori :  All tests passed
+rv32um-p-div :  All tests passed
+rv32um-p-divu :  All tests passed
+rv32um-p-mul :  All tests passed
+rv32um-p-mulh :  All tests passed
+rv32um-p-mulhsu :  All tests passed
+rv32um-p-mulhu :  All tests passed
+rv32um-p-rem :  All tests passed
+rv32um-p-remu :  All tests passed
+```
+
+## Instruction list
 
 | Instruction | Description                         | Implemented | Tested |
 |-------------|-------------------------------------|:-----------:|:------:|
@@ -84,6 +168,16 @@ done
 | SRL         | Shift Right Logical                 | yes         | pass   |
 | OR          | Logic OR                            | yes         | pass   |
 | AND         | Logic AND                           | yes         | pass   |
+|             |                                     |             |        |
+| MUL         | Multiply                            | yes         | pass   |
+| MULH        | Multiply High Signed Signed         | yes         | pass   |
+| MULHSU      | Multiply High Signed Unsigned       | yes         | pass   |
+| MULHU       | Multiply High Unsigned Unsigned     | yes         | pass   |
+| DIV         | Divide Signed                       | yes         | pass   |
+| DIVU        | Divide Unsigned                     | yes         | pass   |
+| REM         | Remainder Signed                    | yes         | pass   |
+| REMU        | Remainder Unsigned                  | yes         | pass   |
+|             |                                     |             |        |
 | EBREAK      | Environment Break                   | kind of     | yeah   |
 | ECALL       | Environment Call                    | kind of     | yeah   |
 | FENCE       | Memory Ordering                     | as NOP*     | n/a    |
@@ -107,155 +201,108 @@ Please refer to the [README.md](asm-tests/README.md) under the asm-tests folder 
 
 
 ```shell
-$ ./herve asm-tests/helloWorld.elf 2>traces
+$ ./herve -h
+Usage: herve [-tsh] -i programFile [-o traceFile]
+ -h  print this help
+ -t  enable execution traces
+ -s  enable execution traces and step by step execution
+
+$ ./herve -i asm-tests/helloWorld.elf -o asm-tests/helloWorld.traces
 Hello
+
+```
+
+The traces of the execution were redirected into the **asm-tests/helloWorld.traces** file :
+
+```
+$ cat asm-tests/helloWorld.traces
+ 80000000 : lui t0,234881024
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 .......0   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000004 : addi t1,zr,72
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......48   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000008 : sw t1,0(t0)
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......48   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 8000000c : addi t1,zr,101
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......65   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000010 : sw t1,0(t0)
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......65   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000014 : addi t1,zr,108
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......6c   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000018 : sw t1,0(t0)
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......6c   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 8000001c : addi t1,zr,108
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......6c   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000020 : sw t1,0(t0)
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......6c   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000024 : addi t1,zr,111
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......6f   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000028 : sw t1,0(t0)
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 ......6f   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 8000002c : addi t1,zr,10
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 .......a   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000030 : sw t1,0(t0)
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 .......a   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
+
+ 80000034 : ebreak
+ zr .......0   ra .......0   sp 8000ffff   gp .......0   tp .......0   t0 .e000000   t1 .......a   t2 .......0  
+ s0 .......0   s1 .......0   a0 .......0   a1 .......0   a2 .......0   a3 .......0   a4 .......0   a5 .......0  
+ a6 .......0   a7 .......0   s2 .......0   s3 .......0   s4 .......0   s5 .......0   s6 .......0   s7 .......0  
+ s8 .......0   s9 .......0  s10 .......0  s11 .......0   t3 .......0   t4 .......0   t5 .......0   t6 .......0  
 
 
 Program halted after 14 instruction cycles
 ```
 
-The traces of the execution were redirected into the **traces** file :
-
-```
-$ cat traces
-Number of segments : 1
-Seg: 0  moving cursor to 4096
-
-Loading segment  : 0x0
-Flags            : 0x5
-Size in file     : 0x38
-Size in memory   : 0x38
-Physical address : 0x80000000
-Virtual address  : 0x80000000
-start of memory  : 0x80000000
-Entry point      : 0x80000000
-Stack Pointer    : 0x8000ffff
-80000000 0e0002b7
-80000004 04800313
-80000008 0062a023
-8000000c 06500313
-80000010 0062a023
-80000014 06c00313
-80000018 0062a023
-8000001c 06c00313
-80000020 0062a023
-80000024 06f00313
-80000028 0062a023
-8000002c 00a00313
-80000030 0062a023
-80000034 00100073
-
-PC  : 80000000	Instruction : 0e0002b7	U-TYPE LUI
-OP :  37   F3 : 0   F7 :   0   RS1 : zr    RS2 : zr    RD : t0    IMM :  e000000
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000000 | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000004	Instruction : 04800313	I-TYPE ALU
-OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : zr    RD : t1    IMM :       48
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000048 | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000008	Instruction : 0062a023	S-TYPE
-OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000048 | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 8000000c	Instruction : 06500313	I-TYPE ALU
-OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       65
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000065 | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000010	Instruction : 0062a023	S-TYPE
-OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  00000065 | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000014	Instruction : 06c00313	I-TYPE ALU
-OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       6c
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000018	Instruction : 0062a023	S-TYPE
-OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 8000001c	Instruction : 06c00313	I-TYPE ALU
-OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       6c
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000020	Instruction : 0062a023	S-TYPE
-OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006c | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000024	Instruction : 06f00313	I-TYPE ALU
-OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :       6f
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006f | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000028	Instruction : 0062a023	S-TYPE
-OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000006f | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 8000002c	Instruction : 00a00313	I-TYPE ALU
-OP :  13   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : t1    IMM :        a
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000000a | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000030	Instruction : 0062a023	S-TYPE
-OP :  23   F3 : 2   F7 :   0   RS1 : t0    RS2 : t1    RD : t1    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000000a | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-
-
-PC  : 80000034	Instruction : 00100073	E-TYPE
-OP :  73   F3 : 0   F7 :   0   RS1 : zr    RS2 : t1    RD : zr    IMM :        0
-zr  00000000 | ra  00000000 | sp  8000ffff | gp  00000000 | tp  00000000 | t0  0e000000 | t1  0000000a | t2  00000000 |
-s0  00000000 | s1  00000000 | a0  00000000 | a1  00000000 | a2  00000000 | a3  00000000 | a4  00000000 | a5  00000000 |
-a6  00000000 | a7  00000000 | s2  00000000 | s3  00000000 | s4  00000000 | s5  00000000 | s6  00000000 | s7  00000000 |
-s8  00000000 | s9  00000000 | s10 00000000 | s11 00000000 | t3  00000000 | t4  00000000 | t5  00000000 | t6  00000000 |
-```
-
-
-Stay tuned !
+"*To understand a program you must become both the machine and the program.*"  
+Alan Perlis

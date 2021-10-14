@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <iomanip>
 #include <cstdlib>
 
@@ -9,8 +10,11 @@
 extern Cpu cpu;
 extern Mem mem;
 
+#define ELF_DEBUG 0
 
-int loadElf(char* filename) {
+// TODO: stop re-inventing the wheel and use libELF
+
+int loadElf(char *filename) {
 
   // try to open the file in read-only/binary mode
   FILE* ElfFile = fopen(filename, "rb");
@@ -39,7 +43,7 @@ int loadElf(char* filename) {
     return 3004;
   }
 
-  // check our elf header struct size matches the one in the elf file
+  // check our ELF header struct size matches the one in the ELF file
   if (header.e_ehsize != sizeof(header)) {
     std::cerr << "ELF header sizes inconsistency\n";
     return 3005;
@@ -76,7 +80,7 @@ int loadElf(char* filename) {
     return 3009;
   }
 
-  // check program header size against the elf file header
+  // check program header size against the ELF file header
   if (header.e_phentsize != sizeof(pHeader)) {
     std::cerr << "Segment header sizes inconsistency\n";
     return 3010;
@@ -86,7 +90,7 @@ int loadElf(char* filename) {
 
   // move the file cursor into the first segment header
   if (header.e_phoff != header.e_ehsize) {
-    std::cerr << "Moving to the first entry in the segment table\n";
+    if (ELF_DEBUG) std::cout << "Moving to the first entry in the segment table\n";
     if (fseek(ElfFile, (long)(header.e_phoff - header.e_ehsize), SEEK_CUR) != 0) {
       std::cerr << "Can't seek into segment table position\n";
       return 3011;
@@ -95,7 +99,7 @@ int loadElf(char* filename) {
 
   long nextPHeaderPosition = {0};
 
-  std::cerr << "Number of segments : " << header.e_phnum << std::endl;
+  if (ELF_DEBUG) std::cout << "Number of segments : " << header.e_phnum << std::endl;
 
   // lets read all of them into memory (we expect only one but might be more ...)
   for (int segmentNum = 0; segmentNum < header.e_phnum; segmentNum++) {
@@ -110,15 +114,13 @@ int loadElf(char* filename) {
 
     // check segment type
     if (pHeader.type != 1){
-      std::cerr << "This segment is not a valid load\n";
+      if (ELF_DEBUG) std::cout << "This segment is not a valid load\n";
       // return 3013;
       continue;  // move to next segment
     }
 
     // if the segment is not right after this program header
     if (pHeader.offset != 0) {
-
-      std::cerr << "Seg: " << segmentNum << "  moving cursor to " << pHeader.offset << std::endl;
 
       // save the file position, for the next segment header
       nextPHeaderPosition = ftell(ElfFile);
@@ -127,7 +129,7 @@ int loadElf(char* filename) {
         return 3014;
       }
 
-      // and move up to the segment itself
+      // and move up to the segment itsELF
       if (fseek(ElfFile, pHeader.offset, SEEK_SET) != 0) {
         std::cerr << "Can't seek into segment #" << segmentNum << std::endl;
         return 3015;
@@ -135,14 +137,16 @@ int loadElf(char* filename) {
     }
 
     // display some information about the segment we are about to load
-    std::cerr << std::hex;
-    std::cerr << "\nLoading segment  : 0x" << segmentNum << std::endl;
-    std::cerr << "Flags            : 0x" << pHeader.flags << std::endl;
-    std::cerr << "Size in file     : 0x" << pHeader.filesz << std::endl;
-    std::cerr << "Size in memory   : 0x" << pHeader.memsz << std::endl;
-    std::cerr << std::setfill('0') << std::setw(8);
-    std::cerr << "Physical address : 0x" << pHeader.paddr << std::endl;
-    std::cerr << "Virtual address  : 0x" << pHeader.vaddr << std::endl;
+    if (ELF_DEBUG) {
+      std::cout << std::hex;
+      std::cout << "\nLoading segment  : 0x" << segmentNum << std::endl;
+      std::cout << "Flags            : 0x" << pHeader.flags << std::endl;
+      std::cout << "Size in file     : 0x" << pHeader.filesz << std::endl;
+      std::cout << "Size in memory   : 0x" << pHeader.memsz << std::endl;
+      std::cout << std::setfill('0') << std::setw(8);
+      std::cout << "Physical address : 0x" << pHeader.paddr << std::endl;
+      std::cout << "Virtual address  : 0x" << pHeader.vaddr << std::endl;
+    }
 
     // check we have enough memory
     if (pHeader.memsz > RAMSIZE) {
@@ -153,17 +157,17 @@ int loadElf(char* filename) {
     if (segmentNum == 0) {
       // initialize virtual address
       mem.setRamStartAddress(pHeader.paddr);
-      std::cerr << "start of memory  : 0x" << mem.getRamStartAddress() << std::endl;
+      if (ELF_DEBUG) std::cout << "start of memory  : 0x" << mem.getRamStartAddress() << std::endl;
 
 
       // initialise program counter
       cpu.setPC(header.e_entry);
       // cpu.setPC(pHeader.paddr);
-      std::cerr << "Entry point      : 0x" << cpu.getPC() << std::endl;
+      if (ELF_DEBUG) std::cout << "Entry point      : 0x" << cpu.getPC() << std::endl;
 
       // initialise stack pointer
       cpu.setReg(2, mem.getRamStartAddress() + RAMSIZE - 1);  // set SP to last address in RAM
-      std::cerr << "Stack Pointer    : 0x" << cpu.getReg(2) << std::endl;
+      if (ELF_DEBUG) std::cout << "Stack Pointer    : 0x" << cpu.getReg(2) << std::endl;
     }
 
     // read the segment into memory
@@ -171,7 +175,6 @@ int loadElf(char* filename) {
       std::cerr << "Can't load segment #" << segmentNum << "into RAM\n";
       return 3017;
     }
-
 
     // reset the un-initialized data into memory (arrays, etc...)
     for (uint32_t i = 0; i < (pHeader.memsz - pHeader.filesz); i++) {
@@ -187,10 +190,12 @@ int loadElf(char* filename) {
     }
 
 
-    // dump the memory
-    for (uint32_t address = pHeader.paddr; address < pHeader.paddr+pHeader.memsz; address += 4) {
-      std::cerr << std::setfill('0') << std::setw(8) << address << " ";
-      std::cerr << std::setfill('0') << std::setw(8) << mem.get32(address) << std::endl;
+    // dump the memory - debug
+    if (ELF_DEBUG) {
+      for (uint32_t address = pHeader.paddr; address < pHeader.paddr+pHeader.memsz; address += 4) {
+        std::cout << std::setfill('0') << std::setw(8) << address << " ";
+        std::cout << std::setfill('0') << std::setw(8) << mem.get32(address) << std::endl;
+      }
     }
   }
 

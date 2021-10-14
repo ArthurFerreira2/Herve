@@ -1,3 +1,8 @@
+#ifndef __ELF_H__
+#define __ELF_H__
+
+#include <cstdint>
+
 #define EI_NIDENT 16
 
 typedef struct {
@@ -42,4 +47,6 @@ typedef struct {
 } Elf32SectionHeader;
 
 
-int loadElf(char* filename);
+int loadElf(char *filename);
+
+#endif

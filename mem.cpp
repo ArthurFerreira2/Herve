@@ -1,11 +1,11 @@
 #include <iostream>
+
 #include "mem.h"
 
 
 // NOTE : the way 8 and 16 bits access were implemented naturally prevent misaligned accesses
 
-
-// TODO : write an exeption handler for memory violations and other unsupported events
+// TODO : write an exeption handler for memory violations (and other unsupported events ?)
 // - dump memory address, PC value, instruction details, register status
 // - and exit... or just display a nice blue screen and reboot ?
 
@@ -54,7 +54,7 @@ int32_t Mem::get32(uint32_t address) {
     return ram32[address >> 2];
   else {
     std::cerr << "\n\nIllegal Memory Read\n\n";
-    return 0; 
+    return 0;
   }
 }
 

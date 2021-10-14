@@ -1,5 +1,5 @@
-#ifndef __MEM__
-#define __MEM__
+#ifndef __MEM_H__
+#define __MEM_H__
 
 #include <cstdint>
 
