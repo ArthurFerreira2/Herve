@@ -587,8 +587,8 @@ int Cpu::exec(int cyclesCount){
           break;
 
           default:
-            std::cerr << "Illegal E-type instruction\n";
-            state = HALTED;  // we ignore them for now...
+            // std::cerr << "Illegal E-type instruction\n";
+            // state = HALTED;  // we ignore them for now...
           break;
         }
     break;
