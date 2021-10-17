@@ -55,4 +55,22 @@ which looks like '0' in ascii   OK
 48  OK
 .
 ? Stack underflow
+
+
+ OK
+: (fibo-iter) ( n n - n n) swap over + ;
+ OK
+: th-fibo ( n - n) >r 1 dup r> 2 - 0 do (fibo-iter) loop nip ;
+ OK
+10 th-fibo .
+55  OK
+
+4 th-fibo .
+3  OK
+12 th-fibo .
+144  OK
+14 th-fibo .
+377  OK
+
+
 ```
