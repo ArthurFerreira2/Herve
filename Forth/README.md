@@ -1,4 +1,4 @@
-# Herve has runs Forth !
+# Herve runs Forth !
 
 Using [A minimal Forth compiler in ANSI C](https://gist.github.com/lbruder/10007431) by [Leif Bruder](https://github.com/lbruder)
 which I modified just enougth to run under herve :
