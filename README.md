@@ -14,24 +14,29 @@ Herve now extract loads froms ELF files and can execute compiled C code ! - cf. 
 
 ## Loader
 
-Our memory is only 64KiB  (who needs more ?)  
+Our memory is only 64KiB  (who needs more ?) - well, I had to increase it to be able to run the forth interpreter ... (more on the Forth folder)  
+
 We load the binaries from the ELF into memory and set the program counter (PC).   
-The stack is set at the highest address
+The stack is set at the highest memory address
 
 Memory is flat : no paging, no access attributes and thus you can read, write and execute at any location.
 
 ## Memory mapped I/O
 
-this is a primitive solution until I implement ecalls
+I'm using a primitive solution until I implement ecalls
 
 ```C
 #define GETCHAR 0x0f000000
 #define PUTCHAR 0x0e000000
 ```
 store a byte at 0x0e000000 and it will be output to stdout
-keypresses **will** be available at address 0x0f000000
+keypresses will be available at address 0x0f000000
 
 ## Progress update
+
+I started to implement the atomic instructions extention
+
+herve can run Forth
 
 **A GitHub CI action has been added to automate tests on commits** - see top of the page badges, the first checks the build and the second execute all the tests.
 
