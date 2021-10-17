@@ -102,7 +102,7 @@ int Cpu::exec(int cyclesCount){
           break;
 
         default:
-          std::cerr << " Illegal I-type instruction\n";
+          std::cerr << "Illegal I-type instruction\n";
           state = HALTED;
         break;
         }
@@ -158,7 +158,7 @@ int Cpu::exec(int cyclesCount){
           break;
 
           default:
-            std::cerr << " Illegal B-type instruction\n";
+            std::cerr << "Illegal B-type instruction\n";
             state = HALTED;
           break;
         }
@@ -206,7 +206,7 @@ int Cpu::exec(int cyclesCount){
           break;
 
           default:
-            std::cerr << " Illegal I-type instruction\n";
+            std::cerr << "Illegal I-type instruction\n";
             state = HALTED;
           break;
         }
@@ -236,7 +236,7 @@ int Cpu::exec(int cyclesCount){
           break;
 
           default:
-            std::cerr << " Illegal S-type instruction\n";
+            std::cerr << "Illegal S-type instruction\n";
             state = HALTED;
           break;
         }
@@ -310,7 +310,7 @@ int Cpu::exec(int cyclesCount){
           break;
 
           default:
-            std::cerr << " Illegal I-type instruction\n";
+            std::cerr << "Illegal I-type instruction\n";
             state = HALTED;
           break;
         }
@@ -463,7 +463,7 @@ int Cpu::exec(int cyclesCount){
             break;
 
             default:
-              std::cerr << " Illegal R-type instruction\n";
+              std::cerr << "Illegal R-type instruction\n";
               state = HALTED;
             break;
           }
@@ -488,10 +488,75 @@ int Cpu::exec(int cyclesCount){
           break;
 
           default:
-            std::cerr << " Illegal fence instruction\n";
+            std::cerr << "Illegal fence instruction\n";
             state = HALTED;
           break;
         }
+    break;
+
+    case 0b0101111:                                                    // ATOMIC
+      func3 = (IR >> 12) & 0b111;
+
+      if (func3 == 0x2) {
+        func5 = (IR >> 27)  & 0b11111;
+        // rl = (IR>>25) *0b1;
+        // aq = (IR>>26) *0b1;
+        // int32_t M= {0};
+        rd = (IR >> 7)  & 0b11111;
+        rs1 = (IR >> 15) & 0b11111;
+        rs2 = (IR >> 20) & 0b11111;
+
+        switch (func5) {
+          case 0x00:                                                            // amoadd.w
+
+          break;
+
+          case 0x01:                                                            // amoswap.w
+
+          break;
+
+          case 0x02:                                                            // lr.w
+
+          break;
+
+          case 0x03:                                                            // sc.w
+
+          break;
+
+          case 0x04:                                                            // amoxor.w
+
+          break;
+
+          case 0x0a:                                                            // amoor.w
+
+          break;
+
+          case 0x0c:                                                            // amoand.w
+
+          break;
+
+          case 0x10:                                                            // amomin.w
+
+          break;
+
+          case 0x14:                                                            // amomax.w
+
+          break;
+
+          case 0x18:                                                            // amominu.w
+
+          break;
+
+          case 0x1c:                                                            // amomaxu.w
+
+          break;
+
+          default:
+            std::cerr << "Illegal Atomic instruction\n";
+            state = HALTED;
+          break;
+        }
+      }
     break;
 
 
@@ -510,27 +575,27 @@ int Cpu::exec(int cyclesCount){
             else if (func12 == 0) {                                             // ECALL - Environment Call
               if (X[17] == 93) {                                                // convention for instruction tests
                 if (X[10] == 0)
-                  std::cerr << " All tests passed\n";
+                  std::cerr << "All tests passed\n";
                 else
                  std::cerr << "test # " << X[14] << " failled\n";
               }
               else
-                std::cerr << " Illegal System Call\n";
+                std::cerr << "Non implemented System Call\n";
 
               state = HALTED;
             }
           break;
 
           default:
-            // std::cerr << " Illegal E-type instruction\n";
-            // state = HALTED;  // we ignore them for now...
+            std::cerr << "Illegal E-type instruction\n";
+            state = HALTED;  // we ignore them for now...
           break;
         }
     break;
 
 
     default:                                                        // CATCH ALL
-        std::cerr << " Illegal instruction\n";
+        std::cerr << "Illegal instruction\n";
         state = HALTED;
     break;
 
@@ -538,7 +603,7 @@ int Cpu::exec(int cyclesCount){
 
   // Instruction Register breakout - debug
   // if (TRACE) {
-  //   sctrace << std::hex;
+  //   ctrace << std::hex;
   //   ctrace << "\n ir : " << std::hex << std::setfill('0') << std::setw(8) << IR;
   //   ctrace << "    op: "  << opcode;
   //   ctrace << "    f3: "  << func3;

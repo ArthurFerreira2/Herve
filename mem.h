@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#define RAMSIZE 0x10000
+#define RAMSIZE 0x100000
 
 // temporarely using memory mapped I/O until ecall is implemented...
 #define GETCHAR 0x0f000000

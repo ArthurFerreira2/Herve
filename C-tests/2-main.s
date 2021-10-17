@@ -22,6 +22,11 @@ main:
 	lbu	a4,1(a5)
 	addi	a5,a5,1
 	bne	a4,zero,.L2
+ #APP
+# 9 "2-main.c" 1
+	ebreak
+# 0 "" 2
+ #NO_APP
 	li	a0,0
 	ret
 	.size	main, .-main

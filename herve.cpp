@@ -51,8 +51,10 @@ int main(int argc, char* argv[]) {
       default:
         std::cout << "Usage: herve [-tsh] -i programFile [-o traceFile]\n";
         std::cout << " -h  print this help\n";
+        std::cout << " -i  mandatory : specifies the file (rv32 elf) to execute\n";
+        std::cout << " -o  specifies the file where the write the execution traces (implies -t)\n";
         std::cout << " -t  enable execution traces\n";
-        std::cout << " -s  enable execution traces and step by step execution\n";
+        std::cout << " -s  step by step execution (implies -t)\n";
         exit(EXIT_SUCCESS);
       break;
     }
@@ -66,10 +68,23 @@ int main(int argc, char* argv[]) {
     exit(errorCode);
   }
 
+
   // Enter into execution loop until CPU is halted
   while (cpu.state != HALTED) {
     cpu.exec(1);
-    if (stepping) getchar();
+    if (stepping) {
+      char c = getchar();
+      switch (c) {
+        case 'd' :  // dump memory
+        break;
+
+        case 'l' : // list code
+        break;
+
+        default:
+        break;
+      }
+    }
   }
 
   // execution summary (only if traces )

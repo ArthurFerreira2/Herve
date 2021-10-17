@@ -1,7 +1,7 @@
 #include <iostream>
+#include <stdio.h>
 
 #include "mem.h"
-
 
 // NOTE : the way 8 and 16 bits access were implemented naturally prevent misaligned accesses
 
@@ -29,6 +29,9 @@ void Mem::setRamStartAddress(uint32_t address) {
 }
 
 int8_t Mem::get8(uint32_t address) {
+  if (address == GETCHAR)
+    return (int8_t)getchar();
+
   address -= ramStartAddress;
   if (address < RAMSIZE)
     return ram8[address];
@@ -39,6 +42,9 @@ int8_t Mem::get8(uint32_t address) {
 }
 
 int16_t Mem::get16(uint32_t address) {
+  if (address == GETCHAR)
+    return (int16_t)getchar();
+
   address -= ramStartAddress;
   if (address < RAMSIZE)
     return ram16[address >> 1];
@@ -49,6 +55,9 @@ int16_t Mem::get16(uint32_t address) {
 }
 
 int32_t Mem::get32(uint32_t address) {
+  if (address == GETCHAR)
+    return (int32_t)getchar();
+
   address -= ramStartAddress;
   if (address < RAMSIZE)
     return ram32[address >> 2];
@@ -58,9 +67,11 @@ int32_t Mem::get32(uint32_t address) {
   }
 }
 
+
+
 void Mem::set8(uint32_t address, int8_t value) {
   if (address == PUTCHAR) {
-    std::cout << (char)value;
+    putchar((char)value);
   }
   else {
     address -= ramStartAddress;
@@ -73,7 +84,7 @@ void Mem::set8(uint32_t address, int8_t value) {
 
 void Mem::set16(uint32_t address, int16_t value) {
   if (address == PUTCHAR) {
-    std::cout << (char)value;
+    putchar((char)value);
   }
   else {
     address -= ramStartAddress;
@@ -86,7 +97,7 @@ void Mem::set16(uint32_t address, int16_t value) {
 
 void Mem::set32(uint32_t address, int32_t value) {
   if (address == PUTCHAR) {
-    std::cout << (char)value;
+    putchar((char)value);
   }
   else {
     address -= ramStartAddress;

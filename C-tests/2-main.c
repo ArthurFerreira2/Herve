@@ -6,4 +6,5 @@ int main() {
     *echo = *grettings;
     grettings++;
   }
+  __asm__ ("ebreak"); // dirty fix until I implement ecalls
 }

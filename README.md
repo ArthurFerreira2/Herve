@@ -9,7 +9,10 @@ I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. W
 Herve now extract loads froms ELF files and can execute compiled C code ! - cf. [README.md](C-tests/README.md) in the C-tests folder
 
 
-## loader
+**Herve can interpret Forth !** - cf. [README.md](Forth/README.md) in the Forth folder
+
+
+## Loader
 
 Our memory is only 64KiB  (who needs more ?)  
 We load the binaries from the ELF into memory and set the program counter (PC).   
@@ -17,7 +20,7 @@ The stack is set at the highest address
 
 Memory is flat : no paging, no access attributes and thus you can read, write and execute at any location.
 
-## memory mapped I/O
+## Memory mapped I/O
 
 this is a primitive solution until I implement ecalls
 
@@ -28,7 +31,9 @@ this is a primitive solution until I implement ecalls
 store a byte at 0x0e000000 and it will be output to stdout
 keypresses **will** be available at address 0x0f000000
 
-## progress update
+## Progress update
+
+**A GitHub CI action has been added to automate tests on commits** - see top of the page badges, the first checks the build and the second execute all the tests.
 
 All RV32im instructions were implemented and fully tested.
 
@@ -127,7 +132,9 @@ rv32um-p-rem :  All tests passed
 rv32um-p-remu :  All tests passed
 ```
 
-## Instruction list
+
+
+## Instructions list
 
 | Instruction | Description                         | Implemented | Tested |
 |-------------|-------------------------------------|:-----------:|:------:|
@@ -178,6 +185,16 @@ rv32um-p-remu :  All tests passed
 | REM         | Remainder Signed                    | yes         | pass   |
 | REMU        | Remainder Unsigned                  | yes         | pass   |
 |             |                                     |             |        |
+| lr.w        | Load Reserved                       | wip         | fail   |            
+| sc.w        | Store Conditional                   | wip         | fail   |
+| amoswap.w   | Atomic Swap                         | wip         | fail   |
+| amoadd.w    | Atomic ADD                          | wip         | fail   |
+| amoand.w    | Atomic AND                          | wip         | fail   |
+| amoor.w     | Atomic OR                           | wip         | fail   |
+| amoxor.w    | Atomix XOR                          | wip         | fail   |
+| amomax.w    | Atomic MAX                          | wip         | fail   |
+| amomin.w    | Atomic MIN                          | wip         | fail   |
+|             |                                     |             |        |
 | EBREAK      | Environment Break                   | kind of     | yeah   |
 | ECALL       | Environment Call                    | kind of     | yeah   |
 | FENCE       | Memory Ordering                     | as NOP*     | n/a    |
@@ -187,7 +204,7 @@ rv32um-p-remu :  All tests passed
 
 ## Usage
 
-### build
+### Build
 
 ```shell
 make
@@ -195,7 +212,7 @@ make
 
 You now should have an executable called herve.
 
-### run
+### Run
 
 Please refer to the [README.md](asm-tests/README.md) under the asm-tests folder for information on how to assemble and the [README.md](C-tests/README.md) under C-tests for information on how to compile your sources into risc-v elf binaries - Makefiles/shell scripts are also provided.
 
