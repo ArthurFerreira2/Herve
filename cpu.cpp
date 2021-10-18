@@ -33,7 +33,7 @@ int Cpu::exec(int cyclesCount){
                                                             // INSTRUCTION FETCH
   IR = mem.get32(PC);  // Instruction Register
 
-  if (TRACE) ctrace << " " << std::hex << std::setfill('0') << std::setw(8) << PC << " : " << std::dec;
+  if (TRACE) ctrace << std::hex << std::setfill('0') << std::setw(8) << PC << " : " << std::dec;
 
   // increment Program Counter
   // might be useless - in some case this has to be undo ... leaving as is for better readability
@@ -601,6 +601,7 @@ int Cpu::exec(int cyclesCount){
 
   } // switch(opcode)
 
+
   // Instruction Register breakout - debug
   // if (TRACE) {
   //   ctrace << std::hex;
@@ -614,15 +615,8 @@ int Cpu::exec(int cyclesCount){
   //   ctrace << "    imm: " << imm;  printRegs();
   // }
 
-  if (TRACE) {
-    ctrace << "\n";
-    for (int i=0; i<32; i++) {
-      ctrace << std::setfill(' ') << std::setw(3) << regNames[i] << " ";
-      ctrace << std::setfill('.') << std::setw(8) << std::hex << X[i]  << "  ";
-      if (!((i+1)%8)) ctrace << "\n";
-    }
-    ctrace << std::endl;
-  }
+
+  ctrace << "\n";
 
   return ++instructionCycles;
 }

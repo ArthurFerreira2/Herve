@@ -1,25 +1,29 @@
 [![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml)
 [![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml)
 
-# Hervé, the RV simulator
-A tiny RISC-V RV32im ISA Simulator in C++ under the MIT Licence
-
-I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator ... **Welcome to the twisted world of computer scientists**
-
-Herve now extract loads froms ELF files and can execute compiled C code ! - cf. [README.md](C-tests/README.md) in the C-tests folder
+# Hervé, the RV simulator  
 
 
-**Herve can interpret Forth !** - cf. [README.md](Forth/README.md) in the Forth folder
+A imple RISC-V RV32im ISA Simulator in C++ under the MIT Licence  
+
+I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator... **Welcome to the twisted world of computer scientists**  
+
+herve extract loads froms ELF files and can execute compiled C code ! - cf. [README.md](C-tests/README.md) in the C-tests folder  
+
+It integrates a **disassembler**, step by step execution, **breakpoints**, memory dump, etc ....
+
+NEW : **herve can interpret Forth !** - cf. [README.md](Forth/README.md) in the Forth folder
 
 
 ## Loader
 
 Our memory is only 64KiB  (who needs more ?) - well, I had to increase it to be able to run the forth interpreter ... (more on the Forth folder)  
 
-We load the binaries from the ELF into memory and set the program counter (PC).   
-The stack is set at the highest memory address
+We load the binaries from the ELF into memory and set the program counter (PC) accordingly.   
+The stack pointer (SP register) is set at the highest memory address.
 
 Memory is flat : no paging, no access attributes and thus you can read, write and execute at any location.
+
 
 ## Memory mapped I/O
 
@@ -30,18 +34,42 @@ I'm using a primitive solution until I implement ecalls
 #define PUTCHAR 0x0e000000
 ```
 store a byte at 0x0e000000 and it will be output to stdout
-keypresses will be available at address 0x0f000000
+keypresses are available at address 0x0f000000
+
 
 ## Progress update
 
+**2021-10-18**  
+Added an integrated disassembler, support for breakpoints etc...  
+
+If you start herve with the -s switch, you can use the following commands :
+- d[addr] - dump memory from addr or PC if addr not specified
+- l[addr] - disassemble code from addr or PC if addr not specified
+- b[addr] - toggle breakpoint at addr or PC if addr not specified
+- s[num] - execute num instructions or only one if num not specified
+- r - print registers
+- c - continue execution until next breakpoint
+- q - quit
+
+
+
+note to myself : write a proper documentation !
+
+**2021-10-17**  
 I started to implement the atomic instructions extention
+herve can run Forth !
 
-herve can run Forth
+**2021-10-13**  
+All RV32im instructions were implemented and fully tested.  
+A GitHub CI action has been added to automate tests on commits - see top of the page badges, the first checks the build and the second execute all the tests.
 
-**A GitHub CI action has been added to automate tests on commits** - see top of the page badges, the first checks the build and the second execute all the tests.
+**2021-10-01**  
+added elf support - herve can execute C programs compiled by gcc  
 
-All RV32im instructions were implemented and fully tested.
+**2021-09-05**  
+all rv32i instruction are implemented and tested  
 
+## Tests
 I use the test suite published at : https://github.com/riscv-software-src/riscv-tests and a shell script to automate testings
 
 ```shell
@@ -138,7 +166,6 @@ rv32um-p-remu :  All tests passed
 ```
 
 
-
 ## Instructions list
 
 | Instruction | Description                         | Implemented | Tested |
@@ -226,8 +253,10 @@ Please refer to the [README.md](asm-tests/README.md) under the asm-tests folder 
 $ ./herve -h
 Usage: herve [-tsh] -i programFile [-o traceFile]
  -h  print this help
+ -i  mandatory : specifies the file (rv32 elf) to execute
+ -o  specifies the file where to write the execution traces (implies -t)
  -t  enable execution traces
- -s  enable execution traces and step by step execution
+ -s  step by step execution (implies -t)
 
 $ ./herve -i asm-tests/helloWorld.elf -o asm-tests/helloWorld.traces
 Hello

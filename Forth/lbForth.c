@@ -1,3 +1,7 @@
+// This code is not mine, I just modified it a bit to get herve running it
+// search for 'ARTHUR FERREIRA' to locate the changes
+
+
 /*******************************************************************************
 *
 * A minimal Forth compiler in C

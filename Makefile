@@ -5,7 +5,7 @@ LIBS =
 %.o: %.cpp
 	$(CXX) $(FLAGS) -c -o $@ $<
 
-herve: cpu.o elf.o  herve.o  mem.o
+herve: cpu.o elf.o  herve.o  mem.o disasm.o
 	$(CXX) $(FLAGS) $^ -o $@ $(LIBS)
 
 .PHONY: clean check
@@ -15,4 +15,3 @@ clean:
 
 check: herve
 	cd tests && ./runTests.sh
- 
