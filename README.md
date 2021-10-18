@@ -3,10 +3,9 @@
 
 # Hervé, the RV simulator  
 
+A simple RISC-V RV32im ISA Simulator in C++ under the MIT Licence  
 
-A imple RISC-V RV32im ISA Simulator in C++ under the MIT Licence  
-
-I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and decided to write an ISA simulator... **Welcome to the twisted world of computer scientists**  
+I bought "the risc-v reader, an open architecture atlas" by D. Paterson and A. Waterman and suddenly decided to write an ISA simulator... **welcome to the twisted world of computer scientists**  
 
 herve extract loads froms ELF files and can execute compiled C code ! - cf. [README.md](C-tests/README.md) in the C-tests folder  
 
@@ -17,9 +16,9 @@ NEW : **herve can interpret Forth !** - cf. [README.md](Forth/README.md) in the 
 
 ## Loader
 
-Our memory is only 64KiB  (who needs more ?) - well, I had to increase it to be able to run the forth interpreter ... (more on the Forth folder)  
+Our memory is only 64KiB  (who needs more ?) - well, I had to increase it a bit to be able to run the forth interpreter - more on the Forth folder  
 
-We load the binaries from the ELF into memory and set the program counter (PC) accordingly.   
+We load binaries from ELF formated files into memory and set the program counter (PC) accordingly.   
 The stack pointer (SP register) is set at the highest memory address.
 
 Memory is flat : no paging, no access attributes and thus you can read, write and execute at any location.
@@ -50,8 +49,6 @@ If you start herve with the -s switch, you can use the following commands :
 - r - print registers
 - c - continue execution until next breakpoint
 - q - quit
-
-
 
 note to myself : write a proper documentation !
 
