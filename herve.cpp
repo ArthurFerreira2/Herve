@@ -16,6 +16,18 @@ std::ostream ctrace(std::cout.rdbuf());  //
 
 void disasm(uint32_t address);
 
+void printHelp(){
+  std::cout << "help :\n";
+  std::cout << "  - d[addr]\tdump memory from addr or PC if addr not specified\n";
+  std::cout << "  - l[addr]\tdisassemble code from addr or PC if addr not specified\n";
+  std::cout << "  - b[addr]\ttoggle breakpoint at addr or PC if addr not specified\n";
+  std::cout << "  - s[num]\texecute num instructions or only one if num not specified\n";
+  std::cout << "  - r\t\tprint registers\n";
+  std::cout << "  - c\t\tcontinue execution until next breakpoint\n";
+  std::cout << "  - q\t\tquit\n";
+  std::cout << "\n";
+}
+
 int main(int argc, char* argv[]) {
 
   setbuf(stdout, NULL);
@@ -70,17 +82,29 @@ int main(int argc, char* argv[]) {
   }
 
 
-  char c, oldC='s', command[256];
-  std::vector<uint32_t> breakpoints;
+  if (stepping) {
 
+    std::cout << "\t _\n";
+    std::cout << "\t| |__    ___  _ __ __   __ ___ \n";
+    std::cout << "\t| '_ \\  / _ \\| '__|\\ \\ / // _ \\\n";
+    std::cout << "\t| | | ||  __/| |    \\ V /|  __/\n";
+    std::cout << "\t|_| |_| \\___||_|     \\_/  \\___|\n";
+    std::cout << "\t     RISC-V RV32im simulator\n\n";
 
-  // Enter into execution loop until CPU is halted
-  while (cpu.state != HALTED) {
-    if (stepping) {
+    printHelp();
+
+    std::cout << "\nLoaded " << programFile << " at " << std::hex << std::setfill('0') << std::setw(8) << mem.getRamStartAddress() << "\n";
+    std::cout << "PC is set at " << std::hex << std::setfill('0') << std::setw(8) << cpu.PC << "\n\n";
+
+    char c, oldC='s', command[256];
+    std::vector<uint32_t> breakpoints;
+
+    // Enter into execution loop until CPU is halted
+    while (cpu.state != HALTED) {
       std::cin >> command;
       c = ((command[0]>96) && (command[0]<123)) ? command[0] : oldC;
       oldC = c;
-      
+
       switch (c) {
         case 'd' :  // dump memory
           {
@@ -154,8 +178,12 @@ int main(int argc, char* argv[]) {
             catch(std::exception& e) {
               numInstr = 1;
             }
-            for (uint32_t i=0; i<numInstr; i++)
-              if (cpu.state != HALTED) cpu.exec(1);
+            for (uint32_t i=0; i<numInstr; i++) {
+              if (cpu.state != HALTED) {
+                cpu.exec(1);
+                std::cout << std::endl;
+              }
+            }
           }
         break;
 
@@ -181,6 +209,7 @@ int main(int argc, char* argv[]) {
         case 'c' : // continue until next breakpoint
           do {
             cpu.exec(1);
+            std::cout << std::endl;
           } while ((std::find(breakpoints.begin(), breakpoints.end(), cpu.PC) == breakpoints.end()) && (cpu.state != HALTED));
         break;
 
@@ -198,20 +227,14 @@ int main(int argc, char* argv[]) {
         break;
 
         default:
-          std::cout << "help :\n";
-          std::cout << "\td[addr] - dump memory from addr or PC if addr not specified\n";
-          std::cout << "\tl[addr] - disassemble code from addr or PC if addr not specified\n";
-          std::cout << "\tb[addr] - toggle breakpoint at addr or PC if addr not specified\n";
-          std::cout << "\ts[num] - execute num instructions or only one if num not specified\n";
-          std::cout << "\tr - print registers\n";
-          std::cout << "\tc - continue execution until next breakpoint\n";
-          std::cout << "\tq - quit\n";
-          std::cout << "\n";
+          printHelp();
         break;
       }
     }
-    else cpu.exec(1);
   }
+  else
+    while (cpu.state != HALTED)
+      cpu.exec(1);
 
   // execution summary (only if trace is enabled)
   if (cpu.TRACE) ctrace << "\nProgram halted after " << std::dec << cpu.instructionCycles << " instruction cycles\n";

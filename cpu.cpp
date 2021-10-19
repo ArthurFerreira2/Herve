@@ -616,7 +616,5 @@ int Cpu::exec(int cyclesCount){
   // }
 
 
-  ctrace << "\n";
-
   return ++instructionCycles;
 }

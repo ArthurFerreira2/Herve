@@ -41,14 +41,28 @@ keypresses are available at address 0x0f000000
 **2021-10-18**  
 Added an integrated disassembler, support for breakpoints etc...  
 
-If you start herve with the -s switch, you can use the following commands :
-- d[addr] - dump memory from addr or PC if addr not specified
-- l[addr] - disassemble code from addr or PC if addr not specified
-- b[addr] - toggle breakpoint at addr or PC if addr not specified
-- s[num] - execute num instructions or only one if num not specified
-- r - print registers
-- c - continue execution until next breakpoint
-- q - quit
+```
+$ ./herve -i C-tests/3-recursion.elf -s
+         _
+        | |__    ___  _ __ __   __ ___
+        | '_ \  / _ \| '__|\ \ / // _ \
+        | | | ||  __/| |    \ V /|  __/
+        |_| |_| \___||_|     \_/  \___|
+             RISC-V RV32im simulator
+
+help :
+  - d[addr]    dump memory from addr or PC if addr not specified
+  - l[addr]    disassemble code from addr or PC if addr not specified
+  - b[addr]    toggle breakpoint at addr or PC if addr not specified
+  - s[num]     execute num instructions or only one if num not specified
+  - r          print registers
+  - c          continue execution until next breakpoint
+  - q          quit
+
+
+Loaded C-tests/3-recursion.elf at 00000000
+PC is set at 000003c0
+```
 
 note to myself : write a proper documentation !
 
