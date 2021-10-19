@@ -601,7 +601,6 @@ int Cpu::exec(int cyclesCount){
 
   } // switch(opcode)
 
-
   // Instruction Register breakout - debug
   // if (TRACE) {
   //   ctrace << std::hex;
@@ -615,6 +614,7 @@ int Cpu::exec(int cyclesCount){
   //   ctrace << "    imm: " << imm;  printRegs();
   // }
 
+  if (TRACE) ctrace << std::endl;
 
   return ++instructionCycles;
 }

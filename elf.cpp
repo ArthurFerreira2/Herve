@@ -188,8 +188,7 @@ int loadElf(char *filename) {
       }
     }
 
-
-    // dump the memory - debug
+    // dump the memory
     if (ELF_DEBUG) {
       for (uint32_t address = pHeader.paddr; address < pHeader.paddr+pHeader.memsz; address += 4) {
         std::cout << std::setfill('0') << std::setw(8) << address << " ";

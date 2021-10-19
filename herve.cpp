@@ -39,8 +39,11 @@ int main(int argc, char* argv[]) {
   bool stepping = false;
 
   // parse command line arguments
+  if (optind < argc){
+    programFile  = argv[optind];
+  }
   int opt;
-  while ((opt = getopt(argc, argv, "i:o:dtsh")) != -1) {
+  while ((opt = getopt(argc, argv, "o:dtsh")) != -1) {
     switch (opt) {
       case 't':
         cpu.TRACE = true;
@@ -51,9 +54,9 @@ int main(int argc, char* argv[]) {
         stepping = true;
       break;
 
-      case 'i':
-        programFile = optarg;
-      break;
+      // case 'i':
+      //   programFile = optarg;
+      // break;
 
       case 'o':
         cpu.TRACE = true;
@@ -68,7 +71,7 @@ int main(int argc, char* argv[]) {
         std::cout << " -i  mandatory : specifies the file (rv32 elf) to execute\n";
         std::cout << " -o  specifies the file where to write the execution traces (implies -t)\n";
         std::cout << " -t  enable execution traces\n";
-        std::cout << " -s  step by step execution (implies -t)\n";
+        std::cout << " -s  step by step execution (implies -t)" << std::endl;
         exit(EXIT_SUCCESS);
       break;
     }
@@ -93,14 +96,16 @@ int main(int argc, char* argv[]) {
 
     printHelp();
 
-    std::cout << "\nLoaded " << programFile << " at " << std::hex << std::setfill('0') << std::setw(8) << mem.getRamStartAddress() << "\n";
-    std::cout << "PC is set at " << std::hex << std::setfill('0') << std::setw(8) << cpu.PC << "\n\n";
+    std::cout << "\n" << programFile << "Loaded at " << std::hex << std::setfill('0') << std::setw(8) << mem.getRamStartAddress() << "\n";
+    std::cout << "PC set at " << std::hex << std::setfill('0') << std::setw(8) << cpu.PC << "\n";
+    std::cout << "SP set at " << std::hex << std::setfill('0') << std::setw(8) << cpu.getReg(2) << "\n\n";
 
     char c, oldC='s', command[256];
     std::vector<uint32_t> breakpoints;
 
     // Enter into execution loop until CPU is halted
     while (cpu.state != HALTED) {
+      std::cout << ">> ";
       std::cin >> command;
       c = ((command[0]>96) && (command[0]<123)) ? command[0] : oldC;
       oldC = c;
@@ -153,17 +158,11 @@ int main(int argc, char* argv[]) {
 
             for (int i=0; i<16; i++, address+=4) {
               disasm(address);
-              if (address == cpu.PC) {
+              if (std::find(breakpoints.begin(), breakpoints.end(), address) != breakpoints.end())
+                std::cout << "\t<< breakpoint";
+              if (address == cpu.PC)
                 std::cout << "\t<< PC";
-                if (std::find(breakpoints.begin(), breakpoints.end(), address) != breakpoints.end())
-                  std::cout << " << breakpoint\n";
-                else
-                  std::cout << std::endl;
-              }
-              else if (std::find(breakpoints.begin(), breakpoints.end(), address) != breakpoints.end())
-                std::cout << "\t<< breakpoint\n";
-              else
-                std::cout << std::endl;
+              std::cout << std::endl;
             }
             std::cout << std::endl;
           }
@@ -181,7 +180,7 @@ int main(int argc, char* argv[]) {
             for (uint32_t i=0; i<numInstr; i++) {
               if (cpu.state != HALTED) {
                 cpu.exec(1);
-                std::cout << std::endl;
+                // std::cout << std::endl;
               }
             }
           }
@@ -209,7 +208,7 @@ int main(int argc, char* argv[]) {
         case 'c' : // continue until next breakpoint
           do {
             cpu.exec(1);
-            std::cout << std::endl;
+            // std::cout << std::endl;
           } while ((std::find(breakpoints.begin(), breakpoints.end(), cpu.PC) == breakpoints.end()) && (cpu.state != HALTED));
         break;
 
