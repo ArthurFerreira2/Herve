@@ -11,7 +11,7 @@ herve extract loads froms ELF files and can execute compiled C code ! - cf. [REA
 
 It integrates a **disassembler**, step by step execution, **breakpoints**, memory dump, etc ....
 
-NEW : **herve can interpret Forth !** - cf. [README.md](Forth/README.md) in the Forth folder
+NEW : **herve interprets Forth !** - cf. [README.md](Forth/README.md) in the Forth folder
 
 
 ## Loader
@@ -38,6 +38,9 @@ keypresses are available at address 0x0f000000
 
 ## Progress update
 
+**2021-10-19**  
+Improved command line interpreter  
+
 **2021-10-18**  
 Added an integrated disassembler, support for breakpoints etc...  
 
@@ -51,17 +54,92 @@ $ ./herve -i C-tests/3-recursion.elf -s
              RISC-V RV32im simulator
 
 help :
-  - d[addr]    dump memory from addr or PC if addr not specified
-  - l[addr]    disassemble code from addr or PC if addr not specified
-  - b[addr]    toggle breakpoint at addr or PC if addr not specified
-  - s[num]     execute num instructions or only one if num not specified
-  - r          print registers
-  - c          continue execution until next breakpoint
-  - q          quit
+  - d[addr]     dump memory from addr or PC if addr not specified
+  - l[addr]     disassemble code from addr or PC if addr not specified
+  - b[addr]     toggle breakpoint at addr or PC if addr not specified
+  - s[num]      execute num instructions or only one if num not specified
+  - r           print registers
+  - p           print Program Counter (PC)
+  - c           continue execution until next breakpoint
+  - q           quit
 
 
-Loaded C-tests/3-recursion.elf at 00000000
-PC is set at 000003c0
+C-tests/3-recursion.elfLoaded at 00000000
+PC set at 000003c0
+SP set at 000fffff
+
+>> l
+000003c0:        addi      sp,sp,-16        << PC
+000003c4:        sw        ra,12(sp)
+000003c8:        addi      a5,zr,1116
+000003cc:        addi      a4,zr,108
+000003d0:        lw        a3,1152(zr)
+000003d4:        addi      a5,a5,1
+000003d8:        sb        a4,0(a3)
+000003dc:        lbu       a4,0(a5)
+000003e0:        bne       a4,zr,-16
+000003e4:        addi      a0,zr,1972
+000003e8:        jal       ra,-1000
+000003ec:        addi      a0,zr,63
+000003f0:        jal       ra,-1008
+000003f4:        addi      a0,zr,5
+000003f8:        jal       ra,-620
+000003fc:        beq       a0,zr,60
+
+>> b3d0
+>> b3e0
+>> b
+list of breakpoints :
+        000003d0
+        000003e0
+
+>> l3b0
+000003b0:        sb        a5,0(a4)
+000003b4:        lbu       a5,0(a0)
+000003b8:        bne       a5,zr,-16
+000003bc:        jalr      zr,ra,0
+000003c0:        addi      sp,sp,-16        << PC
+000003c4:        sw        ra,12(sp)
+000003c8:        addi      a5,zr,1116
+000003cc:        addi      a4,zr,108
+000003d0:        lw        a3,1152(zr)      << breakpoint
+000003d4:        addi      a5,a5,1
+000003d8:        sb        a4,0(a3)
+000003dc:        lbu       a4,0(a5)
+000003e0:        bne       a4,zr,-16        << breakpoint
+000003e4:        addi      a0,zr,1972
+000003e8:        jal       ra,-1000
+000003ec:        addi      a0,zr,63
+
+>> c
+000003c0 : addi sp,sp,-16
+000003c4 : sw ra,12(sp)
+000003c8 : addi a5,zr,1116
+000003cc : addi a4,zr,108
+>>
+000003d0 : lw a3,1152(zr)
+000003d4 : addi a5,a5,1
+000003d8 : sb a4,0(a3)l
+000003dc : lbu a4,0(a5)
+>>
+000003e0 : bne a4,zr,-16
+>>
+000003d0 : lw a3,1152(zr)
+000003d4 : addi a5,a5,1
+000003d8 : sb a4,0(a3)e
+000003dc : lbu a4,0(a5)
+>>
+000003e0 : bne a4,zr,-16
+>> r
+zr  .......0  ra  .......0  sp  ...fffef  gp  .......0  tp  .......0  t0  .......0  t1  .......0  t2  .......0  
+s0  .......0  s1  .......0  a0  .......0  a1  .......0  a2  .......0  a3  .e000000  a4  ......74  a5  .....45e  
+a6  .......0  a7  .......0  s2  .......0  s3  .......0  s4  .......0  s5  .......0  s6  .......0  s7  .......0  
+s8  .......0  s9  .......0  s10 .......0  s11 .......0  t3  .......0  t4  .......0  t5  .......0  t6  .......0  
+
+>> p
+PC : 000003d0
+>>
+
 ```
 
 note to myself : write a proper documentation !
@@ -262,14 +340,14 @@ Please refer to the [README.md](asm-tests/README.md) under the asm-tests folder 
 
 ```shell
 $ ./herve -h
-Usage: herve [-tsh] -i programFile [-o traceFile]
+Usage: herve programFile [-tsh]  [-o traceFile]
+ programFile : the file (rv32 elf) to execute
  -h  print this help
- -i  mandatory : specifies the file (rv32 elf) to execute
- -o  specifies the file where to write the execution traces (implies -t)
  -t  enable execution traces
  -s  step by step execution (implies -t)
+ -o  specifies the file where to write the execution traces (implies -t)
 
-$ ./herve -i asm-tests/helloWorld.elf -o asm-tests/helloWorld.traces
+$ ./herve asm-tests/helloWorld.elf -o asm-tests/helloWorld.traces
 Hello
 
 ```
