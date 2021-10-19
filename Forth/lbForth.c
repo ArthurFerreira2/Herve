@@ -1,5 +1,6 @@
 // This code is not mine, I just modified it a bit to get herve running it
 // search for 'ARTHUR FERREIRA' to locate the changes
+// original code : https://gist.github.com/lbruder/10007431
 
 
 /*******************************************************************************

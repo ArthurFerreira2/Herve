@@ -5,7 +5,7 @@ rm ./testsResults ./*.traces
 for test in `cat ./testsList`
 do
   echo -n "$test : " >> ./testsResults
-  ../herve -i ./$test -o ./$test.traces 2>> ./testsResults
+  ../herve ./$test -o ./$test.traces 2>> ./testsResults
 done
 
 

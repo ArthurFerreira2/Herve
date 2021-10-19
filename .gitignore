@@ -2,5 +2,3 @@
 *.o
 herve
 scratch
-asm-tests/Makefile
-asm-tests/riscv_test.h
