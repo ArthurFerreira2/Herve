@@ -6,7 +6,7 @@
 #define HALTED 0
 #define RUNNING 1
 #define PAUSED 2
-#define STEPPING 3
+#define STEPPING 4
 
 
 extern std::ostream ctrace;

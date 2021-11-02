@@ -1,7 +1,7 @@
 [![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/build.yml)
 [![C/C++ CI](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml/badge.svg)](https://github.com/ArthurFerreira2/Herve/actions/workflows/test.yml)
 
-# Hervé, the RV simulator  
+# herve, the RV simulator  
 
 A simple RISC-V RV32im ISA Simulator in C++ under the MIT Licence  
 
@@ -64,7 +64,7 @@ help :
   - q           quit
 
 
-C-tests/3-recursion.elfLoaded at 00000000
+C-tests/3-recursion.elf loaded at 00000000
 PC set at 000003c0
 SP set at 000fffff
 
